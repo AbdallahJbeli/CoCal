@@ -14,7 +14,6 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
-// Ensure the admin user exists when the server starts
 const initializeAdmin = async () => {
   try {
     const [rows] = await pool.query(
@@ -41,7 +40,7 @@ const testDatabaseConnection = async () => {
     const connection = await pool.getConnection();
     console.log("Connecté à la base de données");
     connection.release();
-    await initializeAdmin(); // Ensure admin exists
+    await initializeAdmin();
   } catch (err) {
     console.error("Erreur de connexion à la base de données:", err);
     throw err;

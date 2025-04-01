@@ -8,7 +8,6 @@ dotenv.config();
 
 const router = express.Router();
 
-// Login Route (For Admin & Users)
 router.post("/login", async (req, res) => {
   const { email, motDePasse } = req.body;
 
@@ -29,7 +28,6 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Mot de passe incorrect." });
     }
 
-    // Generate JWT token
     const token = jwt.sign(
       { id: user.id, typeUtilisateur: user.typeUtilisateur },
       process.env.JWT_KEY,

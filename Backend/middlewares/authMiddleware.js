@@ -19,7 +19,7 @@ export const verifyAdmin = (req, res, next) => {
         .status(403)
         .json({ message: "Accès refusé. Autorisation requise." });
     }
-    req.user = decoded; // Attach user info to request
+    req.user = decoded;
     next();
   } catch (err) {
     return res.status(401).json({ message: "Token invalide." });

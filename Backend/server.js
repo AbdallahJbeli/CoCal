@@ -15,13 +15,12 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/auth", authRoutes);
-app.use("/admin", adminRoutes); // Protects admin routes
+app.use("/admin", adminRoutes);
 
 app.get("/", (req, res) => {
   res.send("Serveur fonctionne !");
 });
 
-// Ensure database connection before starting server
 pool
   .getConnection()
   .then(() => {
