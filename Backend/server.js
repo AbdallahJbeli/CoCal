@@ -1,8 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import createDatabaseConnection from "./database.js";
 import authRoutes from "./routes/authRoutes.js";
+import pool from "./database.js";
 
 dotenv.config();
 
@@ -18,16 +18,15 @@ app.get("/", (req, res) => {
   res.send("Serveur fonctionne !");
 });
 
-const startServer = async () => {
-  try {
-    const database = await createDatabaseConnection();
-
+pool
+  .getConnection()
+  .then(() => {
     app.listen(PORT, () => {
-      console.log(`Le serveur fonctionne sur le port ${PORT}`);
+      console.log(`Serveur en ligne sur le port ${PORT}`);
     });
-  } catch (err) {
+  })
+  .catch((err) => {
     console.error("Impossible de démarrer le serveur:", err);
-  }
-};
+  });
 
 startServer();
