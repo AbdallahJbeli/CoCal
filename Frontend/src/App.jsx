@@ -18,7 +18,6 @@ const App = () => {
         }
       />
       <Route path="/login" element={<Login />} />
-      {/* Add more routes here if needed */}
     </Routes>
   );
 };

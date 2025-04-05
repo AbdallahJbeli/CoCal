@@ -21,16 +21,13 @@ const Sidebar = () => {
   const closeSidebar = () => setIsSidebarOpen(false);
 
   const handleLogout = () => {
-    // Remove the token from localStorage to log out
     localStorage.removeItem("token");
 
-    // Redirect the user to the login page
     navigate("/login");
   };
 
   return (
     <>
-      {/* Menu Button (top-left) — only shown when sidebar is closed */}
       {!isSidebarOpen && (
         <button
           onClick={openSidebar}
@@ -40,14 +37,12 @@ const Sidebar = () => {
         </button>
       )}
 
-      {/* Sidebar */}
       <div
         className={`bg-green-500 text-white w-72 min-h-screen p-4 fixed top-0 z-40 transition-transform duration-300
         ${isSidebarOpen ? "left-0" : "-left-80"} lg:left-0 lg:translate-x-0`}
       >
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl font-bold">Admin Dashboard</h1>
-          {/* Close Button only on small screens */}
           <button className="lg:hidden text-white" onClick={closeSidebar}>
             <X size={24} />
           </button>
@@ -70,7 +65,6 @@ const Sidebar = () => {
             additionalStyles="hover:bg-green-600"
           />
 
-          {/* Dropdown */}
           <div
             className="flex items-center px-3 py-2 rounded-md hover:bg-blue-600 cursor-pointer justify-between"
             onClick={toggleDropdown}

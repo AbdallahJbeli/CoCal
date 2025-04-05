@@ -8,7 +8,6 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       {" "}
-      {/* ✅ WRAP YOUR APP HERE */}
       <App />
     </BrowserRouter>
   </StrictMode>
