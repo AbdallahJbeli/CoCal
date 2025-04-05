@@ -41,4 +41,8 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.post("/logout", (req, res) => {
+  res.status(200).json({ message: "Déconnexion réussie" });
+});
+
 export default router;
