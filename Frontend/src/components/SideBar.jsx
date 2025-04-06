@@ -1,118 +1,65 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  Home,
-  Bookmark,
-  Mail,
-  MessageSquare,
-  LogOut,
-  ChevronDown,
-  Menu,
-  X,
-} from "lucide-react";
+import React from "react";
+import { Coffee, Home, Settings, Users, BarChart, LogOut } from "lucide-react";
 
-const Sidebar = () => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(true);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const navigate = useNavigate();
-
-  const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
-  const openSidebar = () => setIsSidebarOpen(true);
-  const closeSidebar = () => setIsSidebarOpen(false);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-
-    console.log("Token after logout:", localStorage.getItem("token"));
-
-    navigate("/login");
-  };
-
+const Sidebar = ({ setActiveTab }) => {
   return (
-    <>
-      {!isSidebarOpen && (
-        <button
-          onClick={openSidebar}
-          className="lg:hidden fixed top-4 left-4 z-50 bg-green-500 text-white p-2 rounded-md"
-        >
-          <Menu size={24} />
-        </button>
-      )}
-
-      <div
-        className={`bg-green-500 text-white w-72 min-h-screen p-4 fixed top-0 z-40 transition-transform duration-300
-        ${isSidebarOpen ? "left-0" : "-left-80"} lg:left-0 lg:translate-x-0`}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-bold">Admin Dashboard</h1>
-          <button className="lg:hidden text-white" onClick={closeSidebar}>
-            <X size={24} />
-          </button>
-        </div>
-
-        <div className="space-y-2">
-          <SidebarItem
-            icon={<Home size={20} />}
-            label="Home"
-            additionalStyles="hover:bg-green-600"
-          />
-          <SidebarItem
-            icon={<Bookmark size={20} />}
-            label="Bookmark"
-            additionalStyles="hover:bg-green-600"
-          />
-          <SidebarItem
-            icon={<Mail size={20} />}
-            label="Messages"
-            additionalStyles="hover:bg-green-600"
-          />
-
-          <div
-            className="flex items-center px-3 py-2 rounded-md hover:bg-blue-600 cursor-pointer justify-between"
-            onClick={toggleDropdown}
-          >
-            <div className="flex items-center">
-              <MessageSquare className="mr-3" size={20} />
-              <span>Chatbox</span>
-            </div>
-            <ChevronDown
-              className={`transition-transform duration-300 ${
-                isDropdownOpen ? "rotate-180" : ""
-              }`}
-            />
-          </div>
-          {isDropdownOpen && (
-            <div className="ml-8 text-sm space-y-1">
-              <DropdownItem label="Social" />
-              <DropdownItem label="Personal" />
-              <DropdownItem label="Friends" />
-            </div>
-          )}
-
-          <SidebarItem
-            icon={<LogOut size={20} />}
-            label="Logout"
-            additionalStyles="hover:bg-green-600"
-            onClick={handleLogout}
-          />
-        </div>
+    <div className="w-64 h-screen bg-gray-200 text-gray-800 flex flex-col shadow-lg border-r border-green-500">
+      <div className="flex items-center justify-center h-20 bg-gray-200 border-b border-green-500">
+        <Coffee className="mr-3 h-8 w-8 text-brown-600" />
+        <h1 className="text-xl font-bold text-gray-800 tracking-wider">
+          CoCal Admin
+        </h1>
       </div>
-    </>
+
+      <nav className="flex-1 mt-6 overflow-y-auto">
+        <ul className="space-y-1 px-4">
+          <li>
+            <button
+              onClick={() => setActiveTab("Vue d'ensemble")}
+              className="flex items-center w-full p-3 rounded-md hover:bg-green-200 transition-colors text-gray-700 font-medium cursor-pointer"
+            >
+              <Home size={20} className="mr-3" />
+              Vue d'ensemble
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => setActiveTab("Utilisateurs")}
+              className="flex items-center w-full p-3 rounded-md hover:bg-green-200 transition-colors text-gray-700 font-medium cursor-pointer"
+            >
+              <Users size={20} className="mr-3" />
+              Utilisateurs
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => setActiveTab("analytics")}
+              className="flex items-center w-full p-3 rounded-md hover:bg-green-200 transition-colors text-gray-700 font-medium cursor-pointer"
+            >
+              <BarChart size={20} className="mr-3" />
+              Analytics
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => setActiveTab("settings")}
+              className="flex items-center w-full p-3 rounded-md hover:bg-green-200 transition-colors text-gray-700 font-medium cursor-pointer"
+            >
+              <Settings size={20} className="mr-3" />
+              Settings
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      <div className="p-4 border-t border-green-500">
+        <button className="flex items-center w-full p-3 rounded-md hover:bg-red-200 hover:text-red-600 transition-colors text-gray-700 font-medium cursor-pointer">
+          <LogOut size={20} className="mr-3" />
+          Logout
+        </button>
+      </div>
+    </div>
   );
 };
-
-const SidebarItem = ({ icon, label, additionalStyles = "", onClick }) => (
-  <div
-    className={`flex items-center px-3 py-2 rounded-md hover:bg-blue-600 cursor-pointer ${additionalStyles}`}
-    onClick={onClick}
-  >
-    {icon}
-    <span className="ml-3">{label}</span>
-  </div>
-);
-
-const DropdownItem = ({ label }) => (
-  <div className="hover:bg-gray-700 p-2 rounded-md cursor-pointer">{label}</div>
-);
 
 export default Sidebar;
