@@ -23,6 +23,8 @@ const Sidebar = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
 
+    console.log("Token after logout:", localStorage.getItem("token"));
+
     navigate("/login");
   };
 

@@ -5,6 +5,7 @@ import { verifyAdmin } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
+// CREATE USER
 router.post("/create-user", verifyAdmin, async (req, res) => {
   const { nom, email, motDePasse, typeUtilisateur } = req.body;
 
@@ -31,6 +32,99 @@ router.post("/create-user", verifyAdmin, async (req, res) => {
     }
 
     res.status(201).json({ message: "Utilisateur créé avec succès." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
+// GET ALL USERS
+router.get("/users", verifyAdmin, async (req, res) => {
+  try {
+    const [users] = await pool.query(
+      "SELECT id, nom, email, typeUtilisateur FROM utilisateur"
+    );
+    res.status(200).json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
+// GET USER BY ID
+router.get("/users/:id", verifyAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [rows] = await pool.query(
+      "SELECT id, nom, email, typeUtilisateur FROM utilisateur WHERE id = ?",
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Utilisateur non trouvé." });
+    }
+
+    res.status(200).json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
+// UPDATE USER
+router.put("/users/:id", verifyAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { nom, email, motDePasse, typeUtilisateur } = req.body;
+
+  try {
+    const updateFields = [];
+    const values = [];
+
+    if (nom) {
+      updateFields.push("nom = ?");
+      values.push(nom);
+    }
+    if (email) {
+      updateFields.push("email = ?");
+      values.push(email);
+    }
+    if (motDePasse) {
+      const hashPassword = await bcrypt.hash(motDePasse, 10);
+      updateFields.push("motDePasse = ?");
+      values.push(hashPassword);
+    }
+    if (typeUtilisateur) {
+      updateFields.push("typeUtilisateur = ?");
+      values.push(typeUtilisateur);
+    }
+
+    if (updateFields.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Aucune donnée à mettre à jour." });
+    }
+
+    values.push(id);
+    await pool.query(
+      `UPDATE utilisateur SET ${updateFields.join(", ")} WHERE id = ?`,
+      values
+    );
+
+    res.status(200).json({ message: "Utilisateur modifié avec succès." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
+// DELETE USER
+router.delete("/users/:id", verifyAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await pool.query("DELETE FROM utilisateur WHERE id = ?", [id]);
+    res.status(200).json({ message: "Utilisateur supprimé avec succès." });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Erreur serveur" });
