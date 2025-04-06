@@ -5,7 +5,6 @@ import { verifyAdmin } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-// CREATE USER
 router.post("/create-user", verifyAdmin, async (req, res) => {
   const { nom, email, motDePasse, typeUtilisateur } = req.body;
 
@@ -38,7 +37,6 @@ router.post("/create-user", verifyAdmin, async (req, res) => {
   }
 });
 
-// GET ALL USERS
 router.get("/users", verifyAdmin, async (req, res) => {
   try {
     const [users] = await pool.query(
@@ -51,7 +49,6 @@ router.get("/users", verifyAdmin, async (req, res) => {
   }
 });
 
-// GET USER BY ID
 router.get("/users/:id", verifyAdmin, async (req, res) => {
   const { id } = req.params;
 
@@ -72,7 +69,6 @@ router.get("/users/:id", verifyAdmin, async (req, res) => {
   }
 });
 
-// UPDATE USER
 router.put("/users/:id", verifyAdmin, async (req, res) => {
   const { id } = req.params;
   const { nom, email, motDePasse, typeUtilisateur } = req.body;
@@ -118,7 +114,6 @@ router.put("/users/:id", verifyAdmin, async (req, res) => {
   }
 });
 
-// DELETE USER
 router.delete("/users/:id", verifyAdmin, async (req, res) => {
   const { id } = req.params;
 
