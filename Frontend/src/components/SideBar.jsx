@@ -15,7 +15,6 @@ const Sidebar = ({ setActiveTab }) => {
       className="fixed w-16 md:w-64 h-screen bg-gray-200 text-gray-800 flex flex-col shadow-lg border-r border-green-500 transition-all duration-300 z-10"
       style={{ top: 0, left: 0 }}
     >
-      {/* Header */}
       <div className="flex items-center justify-center h-20 bg-gray-200 border-b border-green-500">
         <Coffee className="md:mr-3 h-8 w-8 text-brown-600" />
         <h1 className="hidden md:block text-xl font-bold text-gray-800 tracking-wider">
@@ -23,7 +22,6 @@ const Sidebar = ({ setActiveTab }) => {
         </h1>
       </div>
 
-      {/* Navigation Menu */}
       <nav className="flex-1 mt-6 overflow-y-auto">
         <ul className="space-y-1 px-2 md:px-4">
           <li>
@@ -65,7 +63,6 @@ const Sidebar = ({ setActiveTab }) => {
         </ul>
       </nav>
 
-      {/* Logout Button */}
       <div className="p-2 md:p-4 border-t border-green-500">
         <button
           onClick={handleLogout}

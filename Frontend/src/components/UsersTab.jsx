@@ -8,7 +8,7 @@ const UsersTab = ({ users, onUserAdded }) => {
     typeUtilisateur: "Client",
   });
 
-  const [editingUser, setEditingUser] = useState(null); // store user being edited
+  const [editingUser, setEditingUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -51,7 +51,7 @@ const UsersTab = ({ users, onUserAdded }) => {
         typeUtilisateur: "Client",
       });
       setEditingUser(null);
-      if (onUserAdded) onUserAdded(); // Refresh user list
+      if (onUserAdded) onUserAdded();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -64,7 +64,7 @@ const UsersTab = ({ users, onUserAdded }) => {
     setFormData({
       nom: user.nom,
       email: user.email,
-      motDePasse: "", // don't show the password
+      motDePasse: "",
       typeUtilisateur: user.typeUtilisateur,
     });
   };
@@ -93,18 +93,15 @@ const UsersTab = ({ users, onUserAdded }) => {
 
   return (
     <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
       <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">
         {editingUser ? "Modifier l'utilisateur" : "Ajouter un utilisateur"}
       </h2>
 
-      {/* Form */}
       <form
         onSubmit={handleSubmit}
         className="bg-white p-4 sm:p-6 rounded-lg shadow-md space-y-4"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Nom Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Nom
@@ -120,7 +117,6 @@ const UsersTab = ({ users, onUserAdded }) => {
             />
           </div>
 
-          {/* Email Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Email
@@ -136,7 +132,6 @@ const UsersTab = ({ users, onUserAdded }) => {
             />
           </div>
 
-          {/* Mot de Passe Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Mot de passe
@@ -151,7 +146,6 @@ const UsersTab = ({ users, onUserAdded }) => {
             />
           </div>
 
-          {/* Type Utilisateur Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Type d'utilisateur
@@ -169,7 +163,6 @@ const UsersTab = ({ users, onUserAdded }) => {
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex items-center gap-4 mt-4 flex-wrap">
           <button
             type="submit"
@@ -202,11 +195,9 @@ const UsersTab = ({ users, onUserAdded }) => {
           )}
         </div>
 
-        {/* Error Message */}
         {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
       </form>
 
-      {/* Table Section */}
       <div className="mt-8">
         {users.length === 0 ? (
           <p className="text-gray-600 text-center py-4">
