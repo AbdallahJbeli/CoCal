@@ -8,13 +8,24 @@ const PrivateRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  const decodedToken = JSON.parse(atob(token.split(".")[1]));
+  try {
+    const decoded = JSON.parse(atob(token.split(".")[1]));
 
-  if (decodedToken.typeUtilisateur !== "admin") {
-    return <Navigate to="/" replace />;
+    // Optional: Token expiration check
+    if (decoded.exp * 1000 < Date.now()) {
+      localStorage.removeItem("token");
+      return <Navigate to="/login" replace />;
+    }
+
+    if (decoded.typeUtilisateur !== "admin") {
+      return <Navigate to="/" replace />;
+    }
+
+    return children;
+  } catch {
+    localStorage.removeItem("token");
+    return <Navigate to="/login" replace />;
   }
-
-  return children;
 };
 
 export default PrivateRoute;

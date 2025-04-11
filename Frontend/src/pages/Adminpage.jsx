@@ -1,8 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../components/SideBar";
+import UsersTab from "../components/UsersTab";
+import { useNavigate } from "react-router-dom";
 
 const Adminpage = () => {
+  const navigate = useNavigate();
+  const [users, setUsers] = useState([]);
   const [activeTab, setActiveTab] = useState("Vue d'ensemble");
+
+  const fetchData = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch("http://localhost:5000/admin/users", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.status === 403 || res.status === 401) {
+        navigate("/login");
+        return;
+      }
+      const data = await res.json();
+      setUsers(data);
+    } catch (err) {
+      console.error("Erreur:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [navigate]);
 
   const getHeaderTitle = () => {
     switch (activeTab) {
@@ -21,17 +48,20 @@ const Adminpage = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      {/* Fixed Sidebar */}
       <Sidebar setActiveTab={setActiveTab} />
 
-      <div className="flex-1 flex flex-col">
-        <div className="flex items-center justify-between h-20 px-6 bg-gray-200 border-b border-green-500 shadow-sm">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col ml-16 md:ml-64">
+        {/* Fixed Header */}
+        <div className="fixed top-0 left-16 md:left-64 right-0 h-20 px-6 bg-gray-200 border-b border-green-500 shadow-sm flex items-center justify-between z-10">
           <h1 className="text-2xl font-bold text-gray-800 tracking-wide">
             {getHeaderTitle()}
           </h1>
         </div>
 
-        {/* Content Area */}
-        <div className="flex-1 p-6 bg-gray-50 overflow-y-auto">
+        {/* Scrollable Main Content */}
+        <div className="flex-1 p-6 mt-20 overflow-y-auto bg-gray-50">
           {activeTab === "Vue d'ensemble" && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
@@ -41,12 +71,7 @@ const Adminpage = () => {
             </div>
           )}
           {activeTab === "Utilisateurs" && (
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Users Content
-              </h2>
-              <p className="text-gray-600">Your users content goes here.</p>
-            </div>
+            <UsersTab users={users} onUserAdded={fetchData} />
           )}
           {activeTab === "analytics" && (
             <div>
