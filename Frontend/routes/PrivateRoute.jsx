@@ -11,7 +11,6 @@ const PrivateRoute = ({ children }) => {
   try {
     const decoded = JSON.parse(atob(token.split(".")[1]));
 
-    // Optional: Token expiration check
     if (decoded.exp * 1000 < Date.now()) {
       localStorage.removeItem("token");
       return <Navigate to="/login" replace />;

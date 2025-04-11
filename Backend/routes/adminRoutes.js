@@ -107,23 +107,19 @@ router.put("/users/:id", verifyAdmin, async (req, res) => {
       values
     );
 
-    // Chauffeur logic:
     if (typeUtilisateur === "Chauffeur") {
-      // Check if already exists in chauffeur table
       const [existingChauffeur] = await pool.query(
         "SELECT * FROM chauffeur WHERE id_utilisateur = ?",
         [id]
       );
 
       if (existingChauffeur.length === 0) {
-        // Insert if not already a chauffeur
         await pool.query(
           "INSERT INTO chauffeur (id_utilisateur, disponible) VALUES (?, ?)",
           [id, 1]
         );
       }
     } else {
-      // If not a chauffeur anymore, delete from chauffeur table
       await pool.query("DELETE FROM chauffeur WHERE id_utilisateur = ?", [id]);
     }
 
