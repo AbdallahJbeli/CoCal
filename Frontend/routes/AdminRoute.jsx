@@ -1,7 +1,7 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 
-const PrivateRoute = ({ children }) => {
+const AdminRoute = ({ children }) => {
   const token = localStorage.getItem("token");
 
   if (!token) {
@@ -27,4 +27,4 @@ const PrivateRoute = ({ children }) => {
   }
 };
 
-export default PrivateRoute;
+export default AdminRoute;

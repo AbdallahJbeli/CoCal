@@ -3,7 +3,9 @@ import { Routes, Route } from "react-router-dom";
 import Homepage from "./pages/Homepage";
 import Login from "./components/login";
 import Adminpage from "./pages/Adminpage";
-import PrivateRoute from "../routes/PrivateRoute";
+import AdminRoute from "../routes/AdminRoute";
+import CommercialRoute from "../routes/CommercialRoute";
+import CommercialPage from "./pages/CommercialPage";
 
 const App = () => {
   return (
@@ -12,9 +14,17 @@ const App = () => {
       <Route
         path="/admin-space"
         element={
-          <PrivateRoute>
+          <AdminRoute>
             <Adminpage />
-          </PrivateRoute>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/commercial-space"
+        element={
+          <CommercialRoute>
+            <CommercialPage />
+          </CommercialRoute>
         }
       />
 

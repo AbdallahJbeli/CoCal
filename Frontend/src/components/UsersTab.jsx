@@ -11,6 +11,7 @@ const UsersTab = ({ users, onUserAdded }) => {
   const [editingUser, setEditingUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [filterType, setFilterType] = useState("Tous");
 
   const token = localStorage.getItem("token");
 
@@ -91,16 +92,44 @@ const UsersTab = ({ users, onUserAdded }) => {
     }
   };
 
+  // Filter users based on selected type
+  const filteredUsers = users.filter((user) => {
+    if (filterType === "Tous") return true; // Show all users
+    // Normalize both filterType and user.typeUtilisateur for comparison
+    return (
+      user.typeUtilisateur.trim().toLowerCase() === filterType.toLowerCase()
+    );
+  });
+
   return (
     <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
       <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">
         {editingUser ? "Modifier l'utilisateur" : "Ajouter un utilisateur"}
       </h2>
 
+      {/* Filter Dropdown */}
+      <div className="flex justify-end mb-4">
+        <label className="block text-sm font-medium text-gray-700 mr-2">
+          Filtrer par type:
+        </label>
+        <select
+          value={filterType}
+          onChange={(e) => setFilterType(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+        >
+          <option value="Tous">Tous</option>
+          <option value="Client">Client</option>
+          <option value="Commercial">Commercial</option>
+          <option value="Chauffeur">Chauffeur</option>
+        </select>
+      </div>
+
+      {/* Form for Adding/Editing Users */}
       <form
         onSubmit={handleSubmit}
         className="bg-white p-4 sm:p-6 rounded-lg shadow-md space-y-4"
       >
+        {/* Input Fields */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -163,6 +192,7 @@ const UsersTab = ({ users, onUserAdded }) => {
           </div>
         </div>
 
+        {/* Submit and Cancel Buttons */}
         <div className="flex items-center gap-4 mt-4 flex-wrap">
           <button
             type="submit"
@@ -195,13 +225,15 @@ const UsersTab = ({ users, onUserAdded }) => {
           )}
         </div>
 
+        {/* Error Message */}
         {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
       </form>
 
+      {/* Table of Users */}
       <div className="mt-8">
-        {users.length === 0 ? (
+        {filteredUsers.length === 0 ? (
           <p className="text-gray-600 text-center py-4">
-            Aucun utilisateur trouvé.
+            Aucun utilisateur trouvé pour ce filtre.
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -226,36 +258,47 @@ const UsersTab = ({ users, onUserAdded }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                      {user.id}
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                      {user.nom}
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                      {user.email}
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                      {user.typeUtilisateur}
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
-                      <button
-                        className="text-blue-600 hover:text-blue-800"
-                        onClick={() => handleEdit(user)}
-                      >
-                        Modifier
-                      </button>
-                      <button
-                        className="text-red-600 hover:text-red-800"
-                        onClick={() => handleDelete(user.id)}
-                      >
-                        Supprimer
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {filteredUsers.map((user) => {
+                  console.log(
+                    `User ${user.nom} is an admin?`,
+                    user.typeUtilisateur.trim().toLowerCase() === "admin"
+                  );
+                  return (
+                    <tr key={user.id} className="hover:bg-gray-50">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                        {user.id}
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                        {user.nom}
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                        {user.email}
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                        {user.typeUtilisateur}
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
+                        {/* Edit Button */}
+                        <button
+                          className="text-blue-600 hover:text-blue-800"
+                          onClick={() => handleEdit(user)}
+                        >
+                          Modifier
+                        </button>
+                        {/* Delete Button (Only for Non-Admin Users) */}
+                        {user.typeUtilisateur.trim().toLowerCase() !==
+                          "admin" && (
+                          <button
+                            className="text-red-600 hover:text-red-800"
+                            onClick={() => handleDelete(user.id)}
+                          >
+                            Supprimer
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

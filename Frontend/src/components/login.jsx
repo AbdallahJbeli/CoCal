@@ -20,7 +20,18 @@ const Login = () => {
 
       const { token } = response.data;
       localStorage.setItem("token", token);
-      navigate("/admin-space");
+
+      // Decode the JWT token to get user type
+      const decoded = JSON.parse(atob(token.split(".")[1]));
+
+      // Redirect based on user type
+      if (decoded.typeUtilisateur === "admin") {
+        navigate("/admin-space");
+      } else if (decoded.typeUtilisateur === "commercial") {
+        navigate("/commercial-space");
+      } else {
+        navigate("/"); // fallback for client or others
+      }
     } catch (err) {
       if (err.response && err.response.data.message) {
         setError(err.response.data.message);
