@@ -4,8 +4,8 @@ import Homepage from "./pages/Homepage";
 import Login from "./components/login";
 import Adminpage from "./pages/Adminpage";
 import AdminRoute from "../routes/AdminRoute";
-import CommercialRoute from "../routes/CommercialRoute";
-import CommercialPage from "./pages/CommercialPage";
+import ClientRoute from "../routes/ClientRoute";
+import ClientPage from "./pages/Clientpage";
 
 const App = () => {
   return (
@@ -20,11 +20,11 @@ const App = () => {
         }
       />
       <Route
-        path="/commercial-space"
+        path="/client-space"
         element={
-          <CommercialRoute>
-            <CommercialPage />
-          </CommercialRoute>
+          <ClientRoute>
+            <ClientPage />
+          </ClientRoute>
         }
       />
 

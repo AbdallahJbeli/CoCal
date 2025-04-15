@@ -6,7 +6,15 @@ import { verifyAdmin } from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
 router.post("/create-user", verifyAdmin, async (req, res) => {
-  const { nom, email, motDePasse, typeUtilisateur } = req.body;
+  const {
+    nom,
+    email,
+    motDePasse,
+    typeUtilisateur,
+    num_telephone,
+    adresse,
+    type_client,
+  } = req.body;
 
   try {
     const [rows] = await pool.query(
@@ -27,6 +35,13 @@ router.post("/create-user", verifyAdmin, async (req, res) => {
       await pool.query(
         "INSERT INTO chauffeur (id_utilisateur, disponible) VALUES (?, ?)",
         [result.insertId, 1]
+      );
+    }
+
+    if (typeUtilisateur === "Client") {
+      await pool.query(
+        "INSERT INTO client (id_utilisateur, num_telephone, adresse, type_client) VALUES (?, ?, ?, ?)",
+        [result.insertId, num_telephone, adresse, type_client]
       );
     }
 
@@ -121,6 +136,21 @@ router.put("/users/:id", verifyAdmin, async (req, res) => {
       }
     } else {
       await pool.query("DELETE FROM chauffeur WHERE id_utilisateur = ?", [id]);
+    }
+    if (typeUtilisateur === "Client") {
+      const [existingClient] = await pool.query(
+        "SELECT * FROM client WHERE id_utilisateur = ?",
+        [id]
+      );
+
+      if (existingClient.length === 0) {
+        await pool.query(
+          "INSERT INTO client (id_utilisateur, num_telephone, adresse, type_client) VALUES (?, ?, ?, ?)",
+          [id, num_telephone, adresse, type_client]
+        );
+      }
+    } else {
+      await pool.query("DELETE FROM client WHERE id_utilisateur = ?", [id]);
     }
 
     res.status(200).json({ message: "Utilisateur modifié avec succès." });

@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Sidebar from "../components/SideBar";
 import UsersTab from "../components/UsersTab";
-import { useNavigate } from "react-router-dom";
 
 const adminTabs = [
   "Vue d'ensemble",
@@ -11,33 +10,8 @@ const adminTabs = [
   "Analytics",
 ];
 
-const AdminPage = () => {
-  const navigate = useNavigate();
-  const [users, setUsers] = useState([]);
+const ClientPage = () => {
   const [activeTab, setActiveTab] = useState("Vue d'ensemble");
-
-  const fetchData = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const res = await fetch("http://localhost:5000/admin/users", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (res.status === 403 || res.status === 401) {
-        navigate("/login");
-        return;
-      }
-      const data = await res.json();
-      setUsers(data);
-    } catch (err) {
-      console.error("Erreur:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [navigate]);
 
   const getHeaderTitle = () => {
     switch (activeTab) {
@@ -76,9 +50,7 @@ const AdminPage = () => {
               <p className="text-gray-600">Your dashboard content goes here.</p>
             </div>
           )}
-          {activeTab === "Utilisateurs" && (
-            <UsersTab users={users} onUserAdded={fetchData} />
-          )}
+          {activeTab === "Utilisateurs" && <h1>Utilisateur</h1>}
           {activeTab === "Collectes" && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
@@ -109,4 +81,4 @@ const AdminPage = () => {
   );
 };
 
-export default AdminPage;
+export default ClientPage;

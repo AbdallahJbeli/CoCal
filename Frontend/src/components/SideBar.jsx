@@ -1,8 +1,27 @@
 import React from "react";
-import { Coffee, Home, Settings, Users, BarChart, LogOut } from "lucide-react";
+import {
+  Coffee,
+  Home,
+  BarChart,
+  Users,
+  Truck,
+  LogOut,
+  Boxes,
+  MessageCircle,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const Sidebar = ({ setActiveTab }) => {
+const iconMap = {
+  "Vue d'ensemble": <Home size={20} className="md:mr-3" />,
+  Utilisateurs: <Users size={20} className="md:mr-3" />,
+  Clients: <Users size={20} className="md:mr-3" />,
+  Collectes: <Boxes size={20} className="md:mr-3" />,
+  Véhicules: <Truck size={20} className="md:mr-3" />,
+  Analytics: <BarChart size={20} className="md:mr-3" />,
+  Messages: <MessageCircle size={20} className="md:mr-3" />,
+};
+
+const Sidebar = ({ tabs, setActiveTab }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -24,42 +43,17 @@ const Sidebar = ({ setActiveTab }) => {
 
       <nav className="flex-1 mt-6 overflow-y-auto">
         <ul className="space-y-1 px-2 md:px-4">
-          <li>
-            <button
-              onClick={() => setActiveTab("Vue d'ensemble")}
-              className="flex items-center justify-center md:justify-start w-full p-3 rounded-md hover:bg-green-200 transition-colors text-gray-700 font-medium cursor-pointer"
-            >
-              <Home size={20} className="md:mr-3" />
-              <span className="hidden md:inline">Vue d'ensemble</span>
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => setActiveTab("Utilisateurs")}
-              className="flex items-center justify-center md:justify-start w-full p-3 rounded-md hover:bg-green-200 transition-colors text-gray-700 font-medium cursor-pointer"
-            >
-              <Users size={20} className="md:mr-3" />
-              <span className="hidden md:inline">Utilisateurs</span>
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => setActiveTab("analytics")}
-              className="flex items-center justify-center md:justify-start w-full p-3 rounded-md hover:bg-green-200 transition-colors text-gray-700 font-medium cursor-pointer"
-            >
-              <BarChart size={20} className="md:mr-3" />
-              <span className="hidden md:inline">Collectes</span>
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => setActiveTab("settings")}
-              className="flex items-center justify-center md:justify-start w-full p-3 rounded-md hover:bg-green-200 transition-colors text-gray-700 font-medium cursor-pointer"
-            >
-              <Settings size={20} className="md:mr-3" />
-              <span className="hidden md:inline">Settings</span>
-            </button>
-          </li>
+          {tabs.map((tab) => (
+            <li key={tab}>
+              <button
+                onClick={() => setActiveTab(tab)}
+                className="flex items-center justify-center md:justify-start w-full p-3 rounded-md hover:bg-green-200 transition-colors text-gray-700 font-medium cursor-pointer"
+              >
+                {iconMap[tab] || <Home size={20} className="md:mr-3" />}
+                <span className="hidden md:inline">{tab}</span>
+              </button>
+            </li>
+          ))}
         </ul>
       </nav>
 
