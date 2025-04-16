@@ -1,14 +1,7 @@
 import React, { useState } from "react";
 import Sidebar from "../components/SideBar";
-import UsersTab from "../components/UsersTab";
 
-const adminTabs = [
-  "Vue d'ensemble",
-  "Utilisateurs",
-  "Collectes",
-  "Véhicules",
-  "Analytics",
-];
+const adminTabs = ["Vue d'ensemble", "Collectes", "Historique", "Messsages"];
 
 const ClientPage = () => {
   const [activeTab, setActiveTab] = useState("Vue d'ensemble");
@@ -17,14 +10,12 @@ const ClientPage = () => {
     switch (activeTab) {
       case "Vue d'ensemble":
         return "Tableau de bord";
-      case "Utilisateurs":
-        return "Gestion des utilisateurs";
       case "Collectes":
         return "Gestion des collectes";
-      case "Véhicules":
-        return "Gestion des véhicules";
-      case "Analytics":
-        return "Analytics";
+      case "Historique":
+        return "Historique des collectes";
+      case "Messsages":
+        return "Messsages";
       default:
         return "Admin Dashboard";
     }

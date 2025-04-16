@@ -25,6 +25,8 @@ const Login = () => {
 
       if (decoded.typeUtilisateur === "admin") {
         navigate("/admin-space");
+      } else if (decoded.typeUtilisateur === "client") {
+        navigate("/client-space");
       } else {
         navigate("/");
       }

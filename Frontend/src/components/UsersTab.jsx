@@ -9,6 +9,7 @@ const UsersTab = ({ users, onUserAdded }) => {
     num_telephone: "",
     adresse: "",
     type_client: "",
+    id_commercial: "",
   });
   const [editingUser, setEditingUser] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -50,6 +51,7 @@ const UsersTab = ({ users, onUserAdded }) => {
         num_telephone: "",
         adresse: "",
         type_client: "",
+        id_commercial: "",
       });
       setEditingUser(null);
       if (onUserAdded) onUserAdded();
@@ -70,6 +72,7 @@ const UsersTab = ({ users, onUserAdded }) => {
       num_telephone: user.num_telephone,
       adresse: user.adresse,
       type_client: user.type_client,
+      id_commercial: user.id_commercial || "",
     });
   };
 
@@ -98,6 +101,10 @@ const UsersTab = ({ users, onUserAdded }) => {
       user.typeUtilisateur.trim().toLowerCase() === filterType.toLowerCase()
     );
   });
+
+  const commercialUsers = users.filter(
+    (user) => user.typeUtilisateur.trim().toLowerCase() === "commercial"
+  );
 
   return (
     <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
@@ -225,6 +232,24 @@ const UsersTab = ({ users, onUserAdded }) => {
                   <option value="Occasionnel">Occasionnel</option>
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Commercial assigné
+                </label>
+                <select
+                  name="id_commercial"
+                  value={formData.id_commercial}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="">Sélectionnez un commercial</option>
+                  {commercialUsers.map((commercial) => (
+                    <option key={commercial.id} value={commercial.id}>
+                      {commercial.nom}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </>
           )}
         </div>
@@ -254,6 +279,7 @@ const UsersTab = ({ users, onUserAdded }) => {
                   num_telephone: "",
                   adresse: "",
                   type_client: "",
+                  id_commercial: "",
                 });
               }}
             >

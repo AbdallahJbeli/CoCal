@@ -5,6 +5,7 @@ import { verifyAdmin } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
+// Create a new user
 router.post("/create-user", verifyAdmin, async (req, res) => {
   const {
     nom,
@@ -14,23 +15,29 @@ router.post("/create-user", verifyAdmin, async (req, res) => {
     num_telephone,
     adresse,
     type_client,
+    id_commercial, // Added for client-commercial relationship
   } = req.body;
 
   try {
-    const [rows] = await pool.query(
+    // Check if the user already exists
+    const [existingUsers] = await pool.query(
       "SELECT * FROM utilisateur WHERE email = ?",
       [email]
     );
-    if (rows.length > 0) {
+    if (existingUsers.length > 0) {
       return res.status(400).json({ message: "Utilisateur déjà existant." });
     }
 
+    // Hash the password
     const hashPassword = await bcrypt.hash(motDePasse, 10);
+
+    // Insert the user into the `utilisateur` table
     const [result] = await pool.query(
       "INSERT INTO utilisateur (nom, email, motDePasse, typeUtilisateur) VALUES (?, ?, ?, ?)",
       [nom, email, hashPassword, typeUtilisateur]
     );
 
+    // Handle specific user types
     if (typeUtilisateur === "Chauffeur") {
       await pool.query(
         "INSERT INTO chauffeur (id_utilisateur, disponible) VALUES (?, ?)",
@@ -39,9 +46,27 @@ router.post("/create-user", verifyAdmin, async (req, res) => {
     }
 
     if (typeUtilisateur === "Client") {
+      let nom_commercial = null;
+      if (id_commercial) {
+        const [rows] = await pool.query(
+          "SELECT nom FROM utilisateur WHERE id = ?",
+          [id_commercial]
+        );
+        if (rows.length > 0) {
+          nom_commercial = rows[0].nom;
+        }
+      }
+
       await pool.query(
-        "INSERT INTO client (id_utilisateur, num_telephone, adresse, type_client) VALUES (?, ?, ?, ?)",
-        [result.insertId, num_telephone, adresse, type_client]
+        "INSERT INTO client (id_utilisateur, num_telephone, adresse, type_client, id_commercial, nom_commercial) VALUES (?, ?, ?, ?, ?, ?)",
+        [
+          result.insertId,
+          num_telephone,
+          adresse,
+          type_client,
+          id_commercial,
+          nom_commercial,
+        ]
       );
     }
 
@@ -52,6 +77,7 @@ router.post("/create-user", verifyAdmin, async (req, res) => {
   }
 });
 
+// Get all users
 router.get("/users", verifyAdmin, async (req, res) => {
   try {
     const [users] = await pool.query(
@@ -64,6 +90,7 @@ router.get("/users", verifyAdmin, async (req, res) => {
   }
 });
 
+// Get a single user by ID
 router.get("/users/:id", verifyAdmin, async (req, res) => {
   const { id } = req.params;
 
@@ -84,11 +111,22 @@ router.get("/users/:id", verifyAdmin, async (req, res) => {
   }
 });
 
+// Update a user
 router.put("/users/:id", verifyAdmin, async (req, res) => {
   const { id } = req.params;
-  const { nom, email, motDePasse, typeUtilisateur } = req.body;
+  const {
+    nom,
+    email,
+    motDePasse,
+    typeUtilisateur,
+    num_telephone,
+    adresse,
+    type_client,
+    id_commercial, // Added for client-commercial relationship
+  } = req.body;
 
   try {
+    // Update fields dynamically
     const updateFields = [];
     const values = [];
 
@@ -122,6 +160,7 @@ router.put("/users/:id", verifyAdmin, async (req, res) => {
       values
     );
 
+    // Handle specific user types
     if (typeUtilisateur === "Chauffeur") {
       const [existingChauffeur] = await pool.query(
         "SELECT * FROM chauffeur WHERE id_utilisateur = ?",
@@ -137,16 +176,47 @@ router.put("/users/:id", verifyAdmin, async (req, res) => {
     } else {
       await pool.query("DELETE FROM chauffeur WHERE id_utilisateur = ?", [id]);
     }
+
     if (typeUtilisateur === "Client") {
       const [existingClient] = await pool.query(
         "SELECT * FROM client WHERE id_utilisateur = ?",
         [id]
       );
 
+      let nom_commercial = null;
+      if (id_commercial) {
+        const [rows] = await pool.query(
+          "SELECT nom FROM utilisateur WHERE id = ?",
+          [id_commercial]
+        );
+        if (rows.length > 0) {
+          nom_commercial = rows[0].nom;
+        }
+      }
+
       if (existingClient.length === 0) {
         await pool.query(
-          "INSERT INTO client (id_utilisateur, num_telephone, adresse, type_client) VALUES (?, ?, ?, ?)",
-          [id, num_telephone, adresse, type_client]
+          "INSERT INTO client (id_utilisateur, num_telephone, adresse, type_client, id_commercial, nom_commercial) VALUES (?, ?, ?, ?, ?, ?)",
+          [
+            id,
+            num_telephone,
+            adresse,
+            type_client,
+            id_commercial,
+            nom_commercial,
+          ]
+        );
+      } else {
+        await pool.query(
+          "UPDATE client SET num_telephone = ?, adresse = ?, type_client = ?, id_commercial = ?, nom_commercial = ? WHERE id_utilisateur = ?",
+          [
+            num_telephone,
+            adresse,
+            type_client,
+            id_commercial,
+            nom_commercial,
+            id,
+          ]
         );
       }
     } else {
@@ -160,6 +230,7 @@ router.put("/users/:id", verifyAdmin, async (req, res) => {
   }
 });
 
+// Delete a user
 router.delete("/users/:id", verifyAdmin, async (req, res) => {
   const { id } = req.params;
 

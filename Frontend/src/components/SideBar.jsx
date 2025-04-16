@@ -9,7 +9,7 @@ import {
   Boxes,
   MessageCircle,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const iconMap = {
   "Vue d'ensemble": <Home size={20} className="md:mr-3" />,
@@ -23,6 +23,9 @@ const iconMap = {
 
 const Sidebar = ({ tabs, setActiveTab }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isClientPage = location.pathname.includes("client");
+  const isCommercialPage = location.pathname.includes("commercial");
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -37,7 +40,11 @@ const Sidebar = ({ tabs, setActiveTab }) => {
       <div className="flex items-center justify-center h-20 bg-gray-200 border-b border-green-500">
         <Coffee className="md:mr-3 h-8 w-8 text-brown-600" />
         <h1 className="hidden md:block text-xl font-bold text-gray-800 tracking-wider">
-          CoCal Admin
+          {isClientPage
+            ? "CoCal Client"
+            : isCommercialPage
+            ? "CoCal Commercial"
+            : "CoCal Admin"}
         </h1>
       </div>
 
