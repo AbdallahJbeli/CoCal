@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import clientRoutes from "./routes/clientRoutes.js";
 import pool from "./database.js";
 
 dotenv.config();
@@ -16,6 +17,7 @@ app.use(express.json());
 
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
+app.use("/client", clientRoutes);
 
 app.get("/", (req, res) => {
   res.send("Serveur fonctionne !");

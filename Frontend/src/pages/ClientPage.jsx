@@ -1,7 +1,15 @@
 import React, { useState } from "react";
 import Sidebar from "../components/SideBar";
+import DemandeList from "../components/DemandeList";
+import DemandeCollecteForm from "../components/DemandeCollecteTab";
 
-const adminTabs = ["Vue d'ensemble", "Collectes", "Historique", "Messsages"];
+const clientTabs = [
+  "Vue d'ensemble",
+  "Demande Collectes",
+  "Collectes",
+  "Historique",
+  "Messages",
+];
 
 const ClientPage = () => {
   const [activeTab, setActiveTab] = useState("Vue d'ensemble");
@@ -10,28 +18,34 @@ const ClientPage = () => {
     switch (activeTab) {
       case "Vue d'ensemble":
         return "Tableau de bord";
+      case "Demande Collectes":
+        return "Demande Collectes";
       case "Collectes":
         return "Gestion des collectes";
       case "Historique":
         return "Historique des collectes";
-      case "Messsages":
-        return "Messsages";
+      case "Messages":
+        return "Messages";
       default:
-        return "Admin Dashboard";
+        return "Client Dashboard";
     }
   };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar tabs={adminTabs} setActiveTab={setActiveTab} />
+      {/* Sidebar Component */}
+      <Sidebar tabs={clientTabs} setActiveTab={setActiveTab} />
 
+      {/* Main Content */}
       <div className="flex-1 flex flex-col ml-16 md:ml-64">
-        <div className="fixed top-0 left-16 md:left-64 right-0 h-20 px-6 bg-gray-200 border-b border-green-500 shadow-sm flex items-center justify-between z-10">
+        {/* Header Section */}
+        <div className="fixed top-0 left-16 md:left-64 right-0 h-20 px-6 bg-white/95 border-b border-gray-200 shadow-sm flex items-center justify-between z-10">
           <h1 className="text-2xl font-bold text-gray-800 tracking-wide">
             {getHeaderTitle()}
           </h1>
         </div>
 
+        {/* Tab Content */}
         <div className="flex-1 p-6 mt-20 overflow-y-auto bg-gray-50">
           {activeTab === "Vue d'ensemble" && (
             <div>
@@ -41,29 +55,28 @@ const ClientPage = () => {
               <p className="text-gray-600">Your dashboard content goes here.</p>
             </div>
           )}
-          {activeTab === "Utilisateurs" && <h1>Utilisateur</h1>}
-          {activeTab === "Collectes" && (
+
+          {activeTab === "Demande Collectes" && <DemandeCollecteForm />}
+
+          {activeTab === "Collectes" && <DemandeList />}
+
+          {activeTab === "Historique" && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Collectes Content
+                Historique
               </h2>
-              <p className="text-gray-600">Your collectes content goes here.</p>
+              <p className="text-gray-600">
+                Historique des collectes à venir...
+              </p>
             </div>
           )}
-          {activeTab === "Véhicules" && (
+
+          {activeTab === "Messages" && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Véhicules Content
+                Messages
               </h2>
-              <p className="text-gray-600">Your véhicules content goes here.</p>
-            </div>
-          )}
-          {activeTab === "Analytics" && (
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Analytics Content
-              </h2>
-              <p className="text-gray-600">Your analytics content goes here.</p>
+              <p className="text-gray-600">Système de messagerie à intégrer.</p>
             </div>
           )}
         </div>

@@ -15,11 +15,10 @@ router.post("/create-user", verifyAdmin, async (req, res) => {
     num_telephone,
     adresse,
     type_client,
-    id_commercial, // Added for client-commercial relationship
+    id_commercial,
   } = req.body;
 
   try {
-    // Check if the user already exists
     const [existingUsers] = await pool.query(
       "SELECT * FROM utilisateur WHERE email = ?",
       [email]
@@ -31,7 +30,6 @@ router.post("/create-user", verifyAdmin, async (req, res) => {
     // Hash the password
     const hashPassword = await bcrypt.hash(motDePasse, 10);
 
-    // Insert the user into the `utilisateur` table
     const [result] = await pool.query(
       "INSERT INTO utilisateur (nom, email, motDePasse, typeUtilisateur) VALUES (?, ?, ?, ?)",
       [nom, email, hashPassword, typeUtilisateur]
@@ -111,7 +109,6 @@ router.get("/users/:id", verifyAdmin, async (req, res) => {
   }
 });
 
-// Update a user
 router.put("/users/:id", verifyAdmin, async (req, res) => {
   const { id } = req.params;
   const {

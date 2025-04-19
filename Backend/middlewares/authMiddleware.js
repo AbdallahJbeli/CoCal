@@ -24,7 +24,7 @@ export const verifyRole = (requiredRole) => {
           .json({ message: "Accès refusé. Autorisation requise." });
       }
 
-      req.user = decoded;
+      req.user = decoded; // contains id_client and typeUtilisateur
       next();
     } catch (err) {
       console.error("JWT Verification Error:", err.message);

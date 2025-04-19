@@ -1,56 +1,35 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Sidebar from "../components/SideBar";
-import UsersTab from "../components/UsersTab";
-import { useNavigate } from "react-router-dom";
 
 const adminTabs = [
   "Vue d'ensemble",
-  "Utilisateurs",
   "Collectes",
-  "Véhicules",
-  "Analytics",
+  "Clients",
+  "Chauffeurs",
+  "Carte",
+  "Historique",
+  "Messages",
 ];
 
-const AdminPage = () => {
-  const navigate = useNavigate();
-  const [users, setUsers] = useState([]);
+const CommercialPage = () => {
   const [activeTab, setActiveTab] = useState("Vue d'ensemble");
-
-  const fetchUsers = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const res = await fetch("http://localhost:5000/admin/users", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (res.status === 403 || res.status === 401) {
-        navigate("/login");
-        return;
-      }
-      const data = await res.json();
-      setUsers(data);
-    } catch (err) {
-      console.error("Erreur:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, [navigate]);
 
   const getHeaderTitle = () => {
     switch (activeTab) {
       case "Vue d'ensemble":
         return "Tableau de bord";
-      case "Utilisateurs":
-        return "Gestion des utilisateurs";
       case "Collectes":
         return "Gestion des collectes";
-      case "Véhicules":
-        return "Gestion des véhicules";
-      case "Analytics":
-        return "Analytics";
+      case "Clients":
+        return "Clients";
+      case "Chauffeurs":
+        return "Chauffeurs";
+      case "Carte":
+        return "Carte";
+      case "Historique":
+        return "Historique";
+      case "Messsages":
+        return "Messsages";
       default:
         return "Admin Dashboard";
     }
@@ -61,7 +40,7 @@ const AdminPage = () => {
       <Sidebar tabs={adminTabs} setActiveTab={setActiveTab} />
 
       <div className="flex-1 flex flex-col ml-16 md:ml-64">
-        <div className="fixed top-0 left-16 md:left-64 right-0 h-20 px-6 bg-white/95 border-b border-gray-200 shadow-sm flex items-center justify-between z-10">
+        <div className="fixed top-0 left-16 md:left-64 right-0 h-20 px-6 bg-gray-200 border-b border-green-500 shadow-sm flex items-center justify-between z-10">
           <h1 className="text-2xl font-bold text-gray-800 tracking-wide">
             {getHeaderTitle()}
           </h1>
@@ -76,9 +55,7 @@ const AdminPage = () => {
               <p className="text-gray-600">Your dashboard content goes here.</p>
             </div>
           )}
-          {activeTab === "Utilisateurs" && (
-            <UsersTab users={users} onUserAdded={fetchUsers} />
-          )}
+          {activeTab === "Utilisateurs" && <h1>Utilisateur</h1>}
           {activeTab === "Collectes" && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
@@ -87,20 +64,30 @@ const AdminPage = () => {
               <p className="text-gray-600">Your collectes content goes here.</p>
             </div>
           )}
-          {activeTab === "Véhicules" && (
+          {activeTab === "Clients" && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Véhicules Content
+                Clients Content
               </h2>
-              <p className="text-gray-600">Your véhicules content goes here.</p>
+              <p className="text-gray-600">Your clients content goes here.</p>
             </div>
           )}
-          {activeTab === "Analytics" && (
+          {activeTab === "Chauffeurs" && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Analytics Content
+                Chauffeurs Content
               </h2>
-              <p className="text-gray-600">Your analytics content goes here.</p>
+              <p className="text-gray-600">
+                Your Chauffeurs content goes here.
+              </p>
+            </div>
+          )}
+          {activeTab === "Carte" && (
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                Carte Content
+              </h2>
+              <p className="text-gray-600">Your Carte content goes here.</p>
             </div>
           )}
         </div>
@@ -109,4 +96,4 @@ const AdminPage = () => {
   );
 };
 
-export default AdminPage;
+export default CommercialPage;
