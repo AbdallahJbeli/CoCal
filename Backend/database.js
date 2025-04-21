@@ -17,7 +17,7 @@ const pool = mysql.createPool({
 const initializeAdmin = async () => {
   try {
     const [rows] = await pool.query(
-      "SELECT * FROM utilisateur WHERE typeUtilisateur = 'admin'"
+      "SELECT * FROM utilisateur WHERE email = 'admin@cocal.com'"
     );
 
     if (rows.length === 0) {

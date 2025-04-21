@@ -4,6 +4,14 @@ import { verifyClient } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
+const getClientByUtilisateurId = async (id_utilisateur) => {
+  const [[client]] = await pool.query(
+    "SELECT id, id_commercial FROM client WHERE id_utilisateur = ?",
+    [id_utilisateur]
+  );
+  return client;
+};
+
 router.post("/demande-collecte", verifyClient, async (req, res) => {
   const {
     type_dechet,
@@ -16,10 +24,7 @@ router.post("/demande-collecte", verifyClient, async (req, res) => {
   const id_utilisateur = req.user.id_client;
 
   try {
-    const [[client]] = await pool.query(
-      "SELECT id, id_commercial FROM client WHERE id_utilisateur = ?",
-      [id_utilisateur]
-    );
+    const client = await getClientByUtilisateurId(id_utilisateur);
 
     if (!client) {
       return res.status(404).json({ message: "Client introuvable" });
@@ -47,7 +52,7 @@ router.post("/demande-collecte", verifyClient, async (req, res) => {
 
     res.status(201).json({ message: "Demande envoyée avec succès" });
   } catch (err) {
-    console.error(err);
+    console.error("Erreur serveur:", err);
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
@@ -56,10 +61,7 @@ router.get("/demande-collecte", verifyClient, async (req, res) => {
   const id_utilisateur = req.user.id_client;
 
   try {
-    const [[client]] = await pool.query(
-      "SELECT id FROM client WHERE id_utilisateur = ?",
-      [id_utilisateur]
-    );
+    const client = await getClientByUtilisateurId(id_utilisateur);
 
     if (!client) {
       return res.status(404).json({ message: "Client introuvable" });
@@ -72,7 +74,7 @@ router.get("/demande-collecte", verifyClient, async (req, res) => {
 
     res.json(rows);
   } catch (err) {
-    console.error(err);
+    console.error("Erreur serveur:", err);
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
@@ -99,10 +101,7 @@ router.put("/demande-collecte/:id", verifyClient, async (req, res) => {
       return res.status(404).json({ message: "Demande introuvable" });
     }
 
-    const [[client]] = await pool.query(
-      "SELECT id FROM client WHERE id_utilisateur = ?",
-      [id_utilisateur]
-    );
+    const client = await getClientByUtilisateurId(id_utilisateur);
 
     if (!client || demande.id_client !== client.id) {
       return res.status(403).json({ message: "Accès non autorisé" });
@@ -147,7 +146,7 @@ router.put("/demande-collecte/:id", verifyClient, async (req, res) => {
 
     res.status(200).json({ message: "Demande modifiée avec succès." });
   } catch (err) {
-    console.error(err);
+    console.error("Erreur serveur:", err);
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
@@ -166,10 +165,7 @@ router.delete("/demande-collecte/:id", verifyClient, async (req, res) => {
       return res.status(404).json({ message: "Demande introuvable" });
     }
 
-    const [[client]] = await pool.query(
-      "SELECT id FROM client WHERE id_utilisateur = ?",
-      [id_utilisateur]
-    );
+    const client = await getClientByUtilisateurId(id_utilisateur);
 
     if (!client || demande.id_client !== client.id) {
       return res.status(403).json({ message: "Accès non autorisé" });
@@ -179,8 +175,9 @@ router.delete("/demande-collecte/:id", verifyClient, async (req, res) => {
 
     res.status(200).json({ message: "Demande supprimée avec succès." });
   } catch (err) {
-    console.error(err);
+    console.error("Erreur serveur:", err);
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
+
 export default router;

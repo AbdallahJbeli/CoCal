@@ -3,28 +3,32 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export const verifyRole = (requiredRole) => {
+if (!process.env.JWT_KEY) {
+  throw new Error("JWT_KEY is not defined in environment variables.");
+}
+
+export const verifyRole = (...requiredRoles) => {
   return (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res
-        .status(403)
+        .status(401)
         .json({ message: "Accès refusé. Aucun token fourni." });
     }
 
     const token = authHeader.split(" ")[1];
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_KEY);
+      const decodedToken = jwt.verify(token, process.env.JWT_KEY);
 
-      if (decoded.typeUtilisateur !== requiredRole) {
+      if (!requiredRoles.includes(decodedToken.typeUtilisateur)) {
         return res
           .status(403)
           .json({ message: "Accès refusé. Autorisation requise." });
       }
 
-      req.user = decoded; // contains id_client and typeUtilisateur
+      req.user = decodedToken;
       next();
     } catch (err) {
       console.error("JWT Verification Error:", err.message);
