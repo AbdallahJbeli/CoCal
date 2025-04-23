@@ -1,46 +1,156 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, Mail, Key, ArrowRight } from "lucide-react";
+import { AlertCircle, Mail, Key, ArrowRight, Loader, Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [motDePasse, setMotDePasse] = useState("");
-  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    email: "",
+    motDePasse: "",
+  });
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [serverError, setServerError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = JSON.parse(atob(token.split(".")[1]));
+        const expirationTime = decoded.exp * 1000; // Convert to milliseconds
+        
+        if (expirationTime > Date.now()) {
+          redirectBasedOnRole(decoded.typeUtilisateur);
+        } else {
+          localStorage.removeItem("token");
+        }
+      } catch (error) {
+        localStorage.removeItem("token");
+      }
+    }
+  }, []);
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Email validation
+    if (!formData.email) {
+      newErrors.email = "L'email est requis";
+    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)) {
+      newErrors.email = "Format d'email invalide";
+    }
+
+    // Password validation
+    if (!formData.motDePasse) {
+      newErrors.motDePasse = "Le mot de passe est requis";
+    } else if (formData.motDePasse.length < 6) {
+      newErrors.motDePasse = "Le mot de passe doit contenir au moins 6 caractères";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const redirectBasedOnRole = (role) => {
+    switch (role.toLowerCase()) {
+      case "admin":
+        navigate("/admin-space");
+        break;
+      case "client":
+        navigate("/client-space");
+        break;
+      case "commercial":
+        navigate("/commercial-space");
+        break;
+      default:
+        navigate("/");
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ""
+      }));
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
+    
+    // Prevent multiple submissions
+    if (isSubmitting) return;
+    
+    // Reset errors
+    setServerError("");
+    
+    // Validate form
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
 
     try {
-      const response = await axios.post("http://localhost:5000/auth/login", {
-        email,
-        motDePasse,
-      });
+      const response = await axios.post(
+        "http://localhost:5000/auth/login",
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          timeout: 5000, // 5 second timeout
+        }
+      );
 
       const { token } = response.data;
+      
+      // Store token securely
       localStorage.setItem("token", token);
-
+      
+      // Decode token and redirect
       const decoded = JSON.parse(atob(token.split(".")[1]));
+      redirectBasedOnRole(decoded.typeUtilisateur);
 
-      if (decoded.typeUtilisateur === "admin") {
-        navigate("/admin-space");
-      } else if (decoded.typeUtilisateur === "client") {
-        navigate("/client-space");
-      } else if (decoded.typeUtilisateur === "commercial") {
-        navigate("/commercial-space");
-      } else {
-        navigate("/");
-      }
     } catch (err) {
-      if (err.response && err.response.data.message) {
-        setError(err.response.data.message);
-      } else {
-        setError("Erreur lors de la connexion");
+      let errorMessage = "Erreur lors de la connexion";
+      
+      if (err.response) {
+        // Server responded with error
+        errorMessage = err.response.data.message || errorMessage;
+      } else if (err.request) {
+        // No response received
+        errorMessage = "Impossible de contacter le serveur";
       }
+      
+      setServerError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  // Add toggle password visibility function
+  const togglePasswordVisibility = (e) => {
+    e.preventDefault(); // Prevent form submission
+    setShowPassword(!showPassword);
+  };
+
+  // Cleanup function
+  useEffect(() => {
+    return () => {
+      setFormData({ email: "", motDePasse: "" });
+      setErrors({});
+      setServerError("");
+    };
+  }, []);
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-green-50 to-gray-100">
@@ -52,10 +162,10 @@ const Login = () => {
           Connexion
         </h2>
 
-        {error && (
+        {serverError && (
           <div className="mb-6 p-3 text-sm rounded-lg bg-red-50 text-red-700 border border-red-200 flex items-center justify-center">
             <AlertCircle className="h-5 w-5 mr-2" />
-            {error}
+            {serverError}
           </div>
         )}
 
@@ -66,14 +176,22 @@ const Login = () => {
           <div className="relative">
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all placeholder-gray-400"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              disabled={isSubmitting}
+              className={`w-full px-4 py-3 border rounded-lg transition-all placeholder-gray-400 ${
+                errors.email
+                  ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                  : "border-gray-300 focus:ring-green-500 focus:border-green-500"
+              }`}
               placeholder="exemple@email.com"
             />
             <Mail className="h-5 w-5 absolute right-3 top-3.5 text-gray-400" />
           </div>
+          {errors.email && (
+            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+          )}
         </div>
 
         <div className="mb-7">
@@ -82,23 +200,53 @@ const Login = () => {
           </label>
           <div className="relative">
             <input
-              type="password"
-              value={motDePasse}
-              onChange={(e) => setMotDePasse(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all placeholder-gray-400"
+              type={showPassword ? "text" : "password"}
+              name="motDePasse"
+              value={formData.motDePasse}
+              onChange={handleChange}
+              disabled={isSubmitting}
+              className={`w-full px-4 py-3 border rounded-lg transition-all placeholder-gray-400 ${
+                errors.motDePasse
+                  ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                  : "border-gray-300 focus:ring-green-500 focus:border-green-500"
+              }`}
               placeholder="••••••••"
             />
-            <Key className="h-5 w-5 absolute right-3 top-3.5 text-gray-400" />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 focus:outline-none"
+              tabIndex={-1} // Prevent tab focus as it's not crucial for form completion
+              aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
           </div>
+          {errors.motDePasse && (
+            <p className="mt-1 text-sm text-red-600">{errors.motDePasse}</p>
+          )}
         </div>
 
         <button
           type="submit"
-          className="w-full py-3 px-4 inline-flex justify-center items-center gap-2 rounded-lg border border-transparent font-semibold bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all transform hover:scale-[1.01]"
+          disabled={isSubmitting}
+          className="w-full py-3 px-4 inline-flex justify-center items-center gap-2 rounded-lg border border-transparent font-semibold bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all transform hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Se connecter
-          <ArrowRight className="h-5 w-5" />
+          {isSubmitting ? (
+            <>
+              <Loader className="h-5 w-5 animate-spin" />
+              Connexion en cours...
+            </>
+          ) : (
+            <>
+              Se connecter
+              <ArrowRight className="h-5 w-5" />
+            </>
+          )}
         </button>
       </form>
     </div>
