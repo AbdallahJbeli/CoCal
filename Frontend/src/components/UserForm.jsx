@@ -1,11 +1,18 @@
 import React, { useState } from "react";
-import { Loader2, Pencil, UserPlus, AlertCircle, Eye, EyeOff } from "lucide-react";
+import {
+  Loader2,
+  Pencil,
+  UserPlus,
+  AlertCircle,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
-const FormInput = ({ 
-  label, 
-  name, 
-  type = "text", 
-  placeholder, 
+const FormInput = ({
+  label,
+  name,
+  type = "text",
+  placeholder,
   options = null,
   formData,
   handleFieldChange,
@@ -13,18 +20,19 @@ const FormInput = ({
   touched,
   errors,
   showPassword,
-  setShowPassword
+  setShowPassword,
 }) => {
   const isSelect = type === "select";
   const showError = touched[name] && errors[name];
-  
+
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-700 mb-2">
         {label}
-        {formData.typeUtilisateur === "Client" && 
-         ["num_telephone", "type_client", "id_commercial"].includes(name) && 
-         <span className="text-red-500 ml-1">*</span>}
+        {formData.typeUtilisateur === "Client" &&
+          ["num_telephone", "type_client", "id_commercial"].includes(name) && (
+            <span className="text-red-500 ml-1">*</span>
+          )}
       </label>
       <div className="relative">
         {isSelect ? (
@@ -46,7 +54,13 @@ const FormInput = ({
           <>
             <input
               name={name}
-              type={type === "password" ? (showPassword ? "text" : "password") : type}
+              type={
+                type === "password"
+                  ? showPassword
+                    ? "text"
+                    : "password"
+                  : type
+              }
               placeholder={placeholder}
               value={formData[name]}
               onChange={handleFieldChange}
@@ -101,9 +115,9 @@ const UserForm = ({
   const validateField = (name, value) => {
     switch (name) {
       case "nom":
-        return !value.trim() 
+        return !value.trim()
           ? "Le nom est requis"
-          : value.length < 2 
+          : value.length < 2
           ? "Le nom doit contenir au moins 2 caractères"
           : "";
 
@@ -116,8 +130,9 @@ const UserForm = ({
 
       case "motDePasse":
         if (!editingUser && !value) return "Le mot de passe est requis";
-        if (value && value.length < 6) return "Le mot de passe doit contenir au moins 6 caractères";
-        if (value && !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) 
+        if (value && value.length < 6)
+          return "Le mot de passe doit contenir au moins 6 caractères";
+        if (value && !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value))
           return "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre";
         return "";
 
@@ -125,20 +140,20 @@ const UserForm = ({
         return !value ? "Le type d'utilisateur est requis" : "";
 
       case "num_telephone":
-        if (formData.typeUtilisateur === "Client" && !value) 
+        if (formData.typeUtilisateur === "Client" && !value)
           return "Le numéro de téléphone est requis";
         if (value && !/^[0-9+\s-]{8,}$/.test(value))
           return "Format de numéro invalide";
         return "";
 
       case "type_client":
-        return formData.typeUtilisateur === "Client" && !value 
-          ? "Le type de client est requis" 
+        return formData.typeUtilisateur === "Client" && !value
+          ? "Le type de client est requis"
           : "";
 
       case "id_commercial":
-        return formData.typeUtilisateur === "Client" && !value 
-          ? "Le commercial assigné est requis" 
+        return formData.typeUtilisateur === "Client" && !value
+          ? "Le commercial assigné est requis"
           : "";
 
       default:
@@ -149,7 +164,7 @@ const UserForm = ({
   // Validate form on submit
   const validateForm = () => {
     const newErrors = {};
-    Object.keys(formData).forEach(key => {
+    Object.keys(formData).forEach((key) => {
       const error = validateField(key, formData[key]);
       if (error) newErrors[key] = error;
     });
@@ -160,9 +175,9 @@ const UserForm = ({
   // Handle field blur
   const handleBlur = (e) => {
     const { name, value } = e.target;
-    setTouched(prev => ({ ...prev, [name]: true }));
+    setTouched((prev) => ({ ...prev, [name]: true }));
     const error = validateField(name, value);
-    setErrors(prev => ({ ...prev, [name]: error }));
+    setErrors((prev) => ({ ...prev, [name]: error }));
   };
 
   // Handle field change with validation
@@ -171,15 +186,17 @@ const UserForm = ({
     handleChange(e);
     if (touched[name]) {
       const error = validateField(name, value);
-      setErrors(prev => ({ ...prev, [name]: error }));
+      setErrors((prev) => ({ ...prev, [name]: error }));
     }
   };
 
   // Handle form submission with validation
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    setTouched(Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
-    
+    setTouched(
+      Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {})
+    );
+
     if (validateForm()) {
       handleSubmit(e);
     }
@@ -219,7 +236,7 @@ const UserForm = ({
           touched={touched}
           errors={errors}
         />
-        
+
         <FormInput
           label="Email"
           name="email"
@@ -231,9 +248,11 @@ const UserForm = ({
           touched={touched}
           errors={errors}
         />
-        
+
         <FormInput
-          label={`Mot de passe ${!editingUser ? "*" : "(laisser vide si inchangé)"}`}
+          label={`Mot de passe ${
+            !editingUser ? "*" : "(laisser vide si inchangé)"
+          }`}
           name="motDePasse"
           type="password"
           placeholder="Entrez le mot de passe"
@@ -245,17 +264,19 @@ const UserForm = ({
           showPassword={showPassword}
           setShowPassword={setShowPassword}
         />
-        
+
         <FormInput
           label="Type d'utilisateur"
           name="typeUtilisateur"
           type="select"
           placeholder="Sélectionnez un type"
-          options={<>
-            <option value="Client">Client</option>
-            <option value="Commercial">Commercial</option>
-            <option value="Chauffeur">Chauffeur</option>
-          </>}
+          options={
+            <>
+              <option value="Client">Client</option>
+              <option value="Commercial">Commercial</option>
+              <option value="Chauffeur">Chauffeur</option>
+            </>
+          }
           formData={formData}
           handleFieldChange={handleFieldChange}
           handleBlur={handleBlur}
@@ -275,7 +296,7 @@ const UserForm = ({
               touched={touched}
               errors={errors}
             />
-            
+
             <FormInput
               label="Adresse"
               name="adresse"
@@ -286,36 +307,36 @@ const UserForm = ({
               touched={touched}
               errors={errors}
             />
-            
+
             <FormInput
               label="Type de client"
               name="type_client"
               type="select"
               placeholder="Sélectionnez un type"
-              options={<>
-                <option value="Restaurant">Restaurant</option>
-                <option value="Café">Café</option>
-                <option value="Café-restaut">Café-restaut</option>
-              </>}
+              options={
+                <>
+                  <option value="Restaurant">Restaurant</option>
+                  <option value="Café">Café</option>
+                  <option value="Café-restaut">Café-restaut</option>
+                </>
+              }
               formData={formData}
               handleFieldChange={handleFieldChange}
               handleBlur={handleBlur}
               touched={touched}
               errors={errors}
             />
-            
+
             <FormInput
               label="Commercial assigné"
               name="id_commercial"
               type="select"
               placeholder="Sélectionnez un commercial"
-              options={
-                commercialUsers.map((commercial) => (
-                  <option key={commercial.id} value={commercial.id}>
-                    {commercial.nom}
-                  </option>
-                ))
-              }
+              options={commercialUsers.map((commercial) => (
+                <option key={commercial.id} value={commercial.id}>
+                  {commercial.nom}
+                </option>
+              ))}
               formData={formData}
               handleFieldChange={handleFieldChange}
               handleBlur={handleBlur}
@@ -331,10 +352,12 @@ const UserForm = ({
             name="disponible"
             type="select"
             placeholder="Sélectionnez la disponibilité"
-            options={<>
-              <option value={1}>Disponible</option>
-              <option value={0}>Non disponible</option>
-            </>}
+            options={
+              <>
+                <option value={1}>Disponible</option>
+                <option value={0}>Non disponible</option>
+              </>
+            }
             formData={formData}
             handleFieldChange={handleFieldChange}
             handleBlur={handleBlur}
@@ -367,7 +390,7 @@ const UserForm = ({
             </>
           )}
         </button>
-        
+
         {editingUser && (
           <button
             type="button"

@@ -1,19 +1,19 @@
 import React, { useState, useMemo } from "react";
-import { 
-  Pencil, 
-  Trash2, 
-  Search, 
-  ChevronUp, 
-  ChevronDown, 
+import {
+  Pencil,
+  Trash2,
+  Search,
+  ChevronUp,
+  ChevronDown,
   AlertCircle,
   Loader2,
   UserX,
-  ArrowUpDown
+  ArrowUpDown,
 } from "lucide-react";
 
 const UserTable = ({ users, handleEdit, handleDelete, filterType }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'asc' });
+  const [sortConfig, setSortConfig] = useState({ key: "id", direction: "asc" });
   const [isDeleting, setIsDeleting] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -23,21 +23,21 @@ const UserTable = ({ users, handleEdit, handleDelete, filterType }) => {
     return [...data].sort((a, b) => {
       if (a[key] === null) return 1;
       if (b[key] === null) return -1;
-      
+
       let compareA = a[key].toString().toLowerCase();
       let compareB = b[key].toString().toLowerCase();
-      
-      if (compareA < compareB) return direction === 'asc' ? -1 : 1;
-      if (compareA > compareB) return direction === 'asc' ? 1 : -1;
+
+      if (compareA < compareB) return direction === "asc" ? -1 : 1;
+      if (compareA > compareB) return direction === "asc" ? 1 : -1;
       return 0;
     });
   };
 
   // Handle sort
   const requestSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
     }
     setSortConfig({ key, direction });
   };
@@ -45,15 +45,17 @@ const UserTable = ({ users, handleEdit, handleDelete, filterType }) => {
   // Memoized filtered and sorted data
   const filteredAndSortedUsers = useMemo(() => {
     let result = users.filter((user) => {
-      const matchesFilter = filterType === "Tous" || 
+      const matchesFilter =
+        filterType === "Tous" ||
         user.typeUtilisateur.trim().toLowerCase() === filterType.toLowerCase();
-      
-      const matchesSearch = searchTerm === "" || 
+
+      const matchesSearch =
+        searchTerm === "" ||
         Object.values(user)
           .join(" ")
           .toLowerCase()
           .includes(searchTerm.toLowerCase());
-      
+
       return matchesFilter && matchesSearch;
     });
 
@@ -69,7 +71,9 @@ const UserTable = ({ users, handleEdit, handleDelete, filterType }) => {
 
   // Handle delete with confirmation
   const handleDeleteClick = async (userId) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
+    if (
+      window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")
+    ) {
       setIsDeleting(userId);
       try {
         await handleDelete(userId);
@@ -91,7 +95,7 @@ const UserTable = ({ users, handleEdit, handleDelete, filterType }) => {
           {label}
           <span className="text-gray-400">
             {isSorted ? (
-              sortConfig.direction === 'asc' ? (
+              sortConfig.direction === "asc" ? (
                 <ChevronUp className="h-4 w-4" />
               ) : (
                 <ChevronDown className="h-4 w-4" />
@@ -142,24 +146,33 @@ const UserTable = ({ users, handleEdit, handleDelete, filterType }) => {
                 <TableHeader label="Nom" sortKey="nom" />
                 <TableHeader label="Email" sortKey="email" />
                 <TableHeader label="Type" sortKey="typeUtilisateur" />
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">Actions</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {paginatedUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm text-gray-800">{user.id}</td>
-                  <td className="px-6 py-4 text-sm text-gray-800">{user.nom}</td>
-                  <td className="px-6 py-4 text-sm text-gray-800">{user.email}</td>
+                  <td className="px-6 py-4 text-sm text-gray-800">
+                    {user.nom}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-800">
+                    {user.email}
+                  </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                      {
-                        'admin': 'bg-purple-100 text-purple-800',
-                        'client': 'bg-blue-100 text-blue-800',
-                        'commercial': 'bg-green-100 text-green-800',
-                        'chauffeur': 'bg-orange-100 text-orange-800'
-                      }[user.typeUtilisateur.toLowerCase()] || 'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                        {
+                          admin: "bg-purple-100 text-purple-800",
+                          client: "bg-blue-100 text-blue-800",
+                          commercial: "bg-green-100 text-green-800",
+                          chauffeur: "bg-orange-100 text-orange-800",
+                        }[user.typeUtilisateur.toLowerCase()] ||
+                        "bg-gray-100 text-gray-800"
+                      }`}
+                    >
                       {user.typeUtilisateur}
                     </span>
                   </td>
@@ -172,7 +185,8 @@ const UserTable = ({ users, handleEdit, handleDelete, filterType }) => {
                       >
                         <Pencil className="h-5 w-5" />
                       </button>
-                      {user.typeUtilisateur.trim().toLowerCase() !== "admin" && (
+                      {user.typeUtilisateur.trim().toLowerCase() !==
+                        "admin" && (
                         <button
                           className="text-gray-600 hover:text-red-600 p-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           onClick={() => handleDeleteClick(user.id)}
@@ -199,7 +213,7 @@ const UserTable = ({ users, handleEdit, handleDelete, filterType }) => {
       {totalPages > 1 && (
         <div className="flex justify-center gap-2 mt-4">
           <button
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
             className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -211,15 +225,17 @@ const UserTable = ({ users, handleEdit, handleDelete, filterType }) => {
               onClick={() => setCurrentPage(i + 1)}
               className={`px-4 py-2 border rounded-lg ${
                 currentPage === i + 1
-                  ? 'bg-green-600 text-white border-green-600'
-                  : 'border-gray-300 hover:bg-gray-50'
+                  ? "bg-green-600 text-white border-green-600"
+                  : "border-gray-300 hover:bg-gray-50"
               }`}
             >
               {i + 1}
             </button>
           ))}
           <button
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
             disabled={currentPage === totalPages}
             className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >

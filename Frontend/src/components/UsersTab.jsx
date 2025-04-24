@@ -16,7 +16,7 @@ const UsersTab = ({ users, onUserAdded }) => {
     id_commercial: "",
     disponible: 1,
   });
-  
+
   const [editingUser, setEditingUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -30,7 +30,7 @@ const UsersTab = ({ users, onUserAdded }) => {
     const fetchCommercialUsers = async () => {
       try {
         const commercials = users.filter(
-          user => user.typeUtilisateur.toLowerCase() === "commercial"
+          (user) => user.typeUtilisateur.toLowerCase() === "commercial"
         );
         setCommercialUsers(commercials);
       } catch (err) {
@@ -60,7 +60,7 @@ const UsersTab = ({ users, onUserAdded }) => {
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setError(""); // Clear error when user makes changes
   }, []);
 
@@ -73,7 +73,7 @@ const UsersTab = ({ users, onUserAdded }) => {
       const url = editingUser
         ? `http://localhost:5000/admin/users/${editingUser.id}`
         : "http://localhost:5000/admin/create-user";
-      
+
       const method = editingUser ? "PUT" : "POST";
 
       // Remove empty fields from the request
@@ -97,11 +97,11 @@ const UsersTab = ({ users, onUserAdded }) => {
       }
 
       toast.success(
-        editingUser 
-          ? "Utilisateur modifié avec succès" 
+        editingUser
+          ? "Utilisateur modifié avec succès"
           : "Utilisateur créé avec succès"
       );
-      
+
       resetForm();
       if (onUserAdded) onUserAdded();
     } catch (err) {
