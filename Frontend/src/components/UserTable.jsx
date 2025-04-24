@@ -83,7 +83,6 @@ const UserTable = ({ users, handleEdit, handleDelete, filterType }) => {
     }
   };
 
-  // Table header component
   const TableHeader = ({ label, sortKey }) => {
     const isSorted = sortConfig.key === sortKey;
     return (

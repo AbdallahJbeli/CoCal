@@ -31,6 +31,14 @@ const checkUserExists = async (email, userId = null) => {
   return existingUsers.length > 0;
 };
 
+const adminExists = async (excludeUserId = null) => {
+  const [admins] = await pool.query(
+    "SELECT id FROM utilisateur WHERE typeUtilisateur = 'Admin' AND id != COALESCE(?, -1)",
+    [excludeUserId]
+  );
+  return admins.length > 0;
+};
+
 const handleRoleInsertion = async (
   connection,
   userId,
@@ -90,6 +98,10 @@ router.post(
 
       if (await checkUserExists(email)) {
         return sendError(res, 400, "Cet email est déjà utilisé.");
+      }
+
+      if (typeUtilisateur === "Admin" && (await adminExists())) {
+        return sendError(res, 400, "Un administrateur existe déjà.");
       }
 
       const hashPassword = await bcrypt.hash(motDePasse, 10);
@@ -197,12 +209,32 @@ router.put("/users/:id", [verifyAdmin, validateUserInput], async (req, res) => {
   try {
     await connection.beginTransaction();
 
+    const [existingUser] = await connection.query(
+      "SELECT * FROM utilisateur WHERE id = ?",
+      [id]
+    );
+    if (!existingUser.length) {
+      return sendError(res, 404, "Utilisateur non trouvé.");
+    }
+
     if (email && (await checkUserExists(email, id))) {
       return sendError(
         res,
         400,
         "Cet email est déjà utilisé par un autre utilisateur."
       );
+    }
+
+    if (
+      existingUser[0].typeUtilisateur.toLowerCase() === "admin" &&
+      req.body.typeUtilisateur &&
+      req.body.typeUtilisateur.toLowerCase() !== "admin"
+    ) {
+      return sendError(res, 400, "Cannot change admin user type");
+    }
+
+    if (typeUtilisateur === "Admin" && (await adminExists(id))) {
+      return sendError(res, 400, "Un autre administrateur existe déjà.");
     }
 
     const updateFields = [];
@@ -262,6 +294,33 @@ router.delete(
 
     try {
       await connection.beginTransaction();
+
+      const [adminCount] = await connection.query(
+        "SELECT COUNT(*) AS count FROM utilisateur WHERE typeUtilisateur = 'Admin'"
+      );
+
+      const [user] = await connection.query(
+        "SELECT typeUtilisateur FROM utilisateur WHERE id = ?",
+        [id]
+      );
+
+      if (
+        adminCount[0].count <= 1 &&
+        user.length > 0 &&
+        user[0].typeUtilisateur === "Admin"
+      ) {
+        return sendError(
+          res,
+          400,
+          "Vous ne pouvez pas supprimer le seul administrateur."
+        );
+      }
+
+      // Set id_commercial to NULL for clients assigned to this commercial
+      await connection.query(
+        "UPDATE client SET id_commercial = NULL WHERE id_commercial = ?",
+        [id]
+      );
 
       await connection.query("DELETE FROM chauffeur WHERE id_utilisateur = ?", [
         id,

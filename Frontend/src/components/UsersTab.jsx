@@ -25,7 +25,6 @@ const UsersTab = ({ users, onUserAdded }) => {
 
   const token = localStorage.getItem("token");
 
-  // Fetch commercial users for the dropdown
   useEffect(() => {
     const fetchCommercialUsers = async () => {
       try {
@@ -61,7 +60,7 @@ const UsersTab = ({ users, onUserAdded }) => {
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setError(""); // Clear error when user makes changes
+    setError("");
   }, []);
 
   const handleSubmit = async (e) => {
@@ -76,9 +75,8 @@ const UsersTab = ({ users, onUserAdded }) => {
 
       const method = editingUser ? "PUT" : "POST";
 
-      // Remove empty fields from the request
       const requestData = Object.fromEntries(
-        Object.entries(formData).filter(([_, value]) => value !== "")
+        Object.entries(formData).filter(([, value]) => value !== "")
       );
 
       const res = await fetch(url, {
@@ -140,8 +138,11 @@ const UsersTab = ({ users, onUserAdded }) => {
     setFormData({
       nom: user.nom || "",
       email: user.email || "",
-      motDePasse: "", // Don't populate password
-      typeUtilisateur: user.typeUtilisateur || "",
+      motDePasse: "",
+      typeUtilisateur: user.typeUtilisateur
+        ? user.typeUtilisateur.charAt(0).toUpperCase() +
+          user.typeUtilisateur.slice(1).toLowerCase()
+        : "",
       num_telephone: user.num_telephone || "",
       adresse: user.adresse || "",
       type_client: user.type_client || "",

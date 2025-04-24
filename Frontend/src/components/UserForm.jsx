@@ -6,96 +6,16 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
+  User,
+  Briefcase,
+  Truck,
+  Shield,
+  Coffee,
+  Egg,
+  CheckCircle, // For available
+  XCircle, // For not available
 } from "lucide-react";
-
-const FormInput = ({
-  label,
-  name,
-  type = "text",
-  placeholder,
-  options = null,
-  formData,
-  handleFieldChange,
-  handleBlur,
-  touched,
-  errors,
-  showPassword,
-  setShowPassword,
-}) => {
-  const isSelect = type === "select";
-  const showError = touched[name] && errors[name];
-
-  return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        {label}
-        {formData.typeUtilisateur === "Client" &&
-          ["num_telephone", "type_client", "id_commercial"].includes(name) && (
-            <span className="text-red-500 ml-1">*</span>
-          )}
-      </label>
-      <div className="relative">
-        {isSelect ? (
-          <select
-            name={name}
-            value={formData[name]}
-            onChange={handleFieldChange}
-            onBlur={handleBlur}
-            className={`w-full px-4 py-3 border rounded-lg transition-all ${
-              showError
-                ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                : "border-gray-200 focus:ring-green-500 focus:border-green-500"
-            }`}
-          >
-            <option value="">{placeholder}</option>
-            {options}
-          </select>
-        ) : (
-          <>
-            <input
-              name={name}
-              type={
-                type === "password"
-                  ? showPassword
-                    ? "text"
-                    : "password"
-                  : type
-              }
-              placeholder={placeholder}
-              value={formData[name]}
-              onChange={handleFieldChange}
-              onBlur={handleBlur}
-              className={`w-full px-4 py-3 border rounded-lg transition-all ${
-                showError
-                  ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                  : "border-gray-200 focus:ring-green-500 focus:border-green-500"
-              }`}
-            />
-            {type === "password" && formData[name] && (
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 focus:outline-none"
-              >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5" />
-                ) : (
-                  <Eye className="h-5 w-5" />
-                )}
-              </button>
-            )}
-          </>
-        )}
-      </div>
-      {showError && (
-        <p className="text-red-500 text-sm flex items-center gap-1">
-          <AlertCircle className="h-4 w-4" />
-          {errors[name]}
-        </p>
-      )}
-    </div>
-  );
-};
+import FormInput from "./FormInput";
 
 const UserForm = ({
   formData,
@@ -111,7 +31,9 @@ const UserForm = ({
   const [showPassword, setShowPassword] = useState(false);
   const [touched, setTouched] = useState({});
 
-  // Validation rules
+  const isEditingAdmin =
+    editingUser?.typeUtilisateur?.toLowerCase() === "admin";
+
   const validateField = (name, value) => {
     switch (name) {
       case "nom":
@@ -146,6 +68,11 @@ const UserForm = ({
           return "Format de numéro invalide";
         return "";
 
+      case "adresse":
+        if (formData.typeUtilisateur === "Client" && !value)
+          return "L'adresse est requis";
+        return "";
+
       case "type_client":
         return formData.typeUtilisateur === "Client" && !value
           ? "Le type de client est requis"
@@ -161,7 +88,6 @@ const UserForm = ({
     }
   };
 
-  // Validate form on submit
   const validateForm = () => {
     const newErrors = {};
     Object.keys(formData).forEach((key) => {
@@ -172,7 +98,6 @@ const UserForm = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle field blur
   const handleBlur = (e) => {
     const { name, value } = e.target;
     setTouched((prev) => ({ ...prev, [name]: true }));
@@ -180,7 +105,6 @@ const UserForm = ({
     setErrors((prev) => ({ ...prev, [name]: error }));
   };
 
-  // Handle field change with validation
   const handleFieldChange = (e) => {
     const { name, value } = e.target;
     handleChange(e);
@@ -190,7 +114,6 @@ const UserForm = ({
     }
   };
 
-  // Handle form submission with validation
   const handleFormSubmit = (e) => {
     e.preventDefault();
     setTouched(
@@ -202,7 +125,6 @@ const UserForm = ({
     }
   };
 
-  // Reset form
   const resetForm = () => {
     setFormData({
       nom: "",
@@ -251,7 +173,7 @@ const UserForm = ({
 
         <FormInput
           label={`Mot de passe ${
-            !editingUser ? "*" : "(laisser vide si inchangé)"
+            !editingUser ? "" : "(laisser vide si inchangé)"
           }`}
           name="motDePasse"
           type="password"
@@ -265,24 +187,61 @@ const UserForm = ({
           setShowPassword={setShowPassword}
         />
 
-        <FormInput
-          label="Type d'utilisateur"
-          name="typeUtilisateur"
-          type="select"
-          placeholder="Sélectionnez un type"
-          options={
-            <>
-              <option value="Client">Client</option>
-              <option value="Commercial">Commercial</option>
-              <option value="Chauffeur">Chauffeur</option>
-            </>
-          }
-          formData={formData}
-          handleFieldChange={handleFieldChange}
-          handleBlur={handleBlur}
-          touched={touched}
-          errors={errors}
-        />
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Type d'utilisateur <span className="text-red-500 ml-1">*</span>
+          </label>
+          <div className="flex gap-6">
+            {[
+              {
+                type: "Admin",
+                icon: <Shield className="h-5 w-5 text-purple-600" />, // Changed to Shield icon for Admin
+              },
+              {
+                type: "Client",
+                icon: <User className="h-5 w-5 text-green-600" />,
+              },
+              {
+                type: "Commercial",
+                icon: <Briefcase className="h-5 w-5 text-blue-600" />,
+              },
+              {
+                type: "Chauffeur",
+                icon: <Truck className="h-5 w-5 text-yellow-600" />,
+              },
+            ].map(({ type, icon }) => (
+              <label
+                key={type}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer transition-all
+                  ${
+                    formData.typeUtilisateur === type
+                      ? "border-green-600 bg-green-50 shadow"
+                      : "border-gray-200 bg-white hover:bg-gray-50"
+                  }
+                  ${isEditingAdmin ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="typeUtilisateur"
+                  value={type}
+                  checked={formData.typeUtilisateur === type}
+                  onChange={handleFieldChange}
+                  onBlur={handleBlur}
+                  className="accent-green-600"
+                  disabled={isEditingAdmin}
+                />
+                {icon}
+                <span className="font-medium">{type}</span>
+              </label>
+            ))}
+          </div>
+          {touched.typeUtilisateur && errors.typeUtilisateur && (
+            <p className="text-red-500 text-sm flex items-center gap-1">
+              <AlertCircle className="h-4 w-4" />
+              {errors.typeUtilisateur}
+            </p>
+          )}
+        </div>
 
         {formData.typeUtilisateur === "Client" && (
           <>
@@ -308,24 +267,61 @@ const UserForm = ({
               errors={errors}
             />
 
-            <FormInput
-              label="Type de client"
-              name="type_client"
-              type="select"
-              placeholder="Sélectionnez un type"
-              options={
-                <>
-                  <option value="Restaurant">Restaurant</option>
-                  <option value="Café">Café</option>
-                  <option value="Café-restaut">Café-restaut</option>
-                </>
-              }
-              formData={formData}
-              handleFieldChange={handleFieldChange}
-              handleBlur={handleBlur}
-              touched={touched}
-              errors={errors}
-            />
+            {/* Type de client with icons */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Type de client <span className="text-red-500 ml-1">*</span>
+              </label>
+              <div className="flex gap-6">
+                {[
+                  {
+                    type: "Restaurant",
+                    icon: <Egg className="h-5 w-5 text-orange-600" />, // Example icon
+                  },
+                  {
+                    type: "Café",
+                    icon: <Coffee className="h-5 w-5 text-brown-600" />, // Example icon, you may need to import Coffee from lucide-react
+                  },
+                  {
+                    type: "Café-restaut",
+                    icon: (
+                      <span className="flex items-center">
+                        <Egg className="h-5 w-5 text-orange-600" />
+                        <Coffee className="h-5 w-5 text-brown-600 ml-1" />
+                      </span>
+                    ),
+                  },
+                ].map(({ type, icon }) => (
+                  <label
+                    key={type}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer transition-all
+                      ${
+                        formData.type_client === type
+                          ? "border-green-600 bg-green-50 shadow"
+                          : "border-gray-200 bg-white hover:bg-gray-50"
+                      }`}
+                  >
+                    <input
+                      type="radio"
+                      name="type_client"
+                      value={type}
+                      checked={formData.type_client === type}
+                      onChange={handleFieldChange}
+                      onBlur={handleBlur}
+                      className="accent-green-600"
+                    />
+                    {icon}
+                    <span className="font-medium">{type}</span>
+                  </label>
+                ))}
+              </div>
+              {touched.type_client && errors.type_client && (
+                <p className="text-red-500 text-sm flex items-center gap-1">
+                  <AlertCircle className="h-4 w-4" />
+                  {errors.type_client}
+                </p>
+              )}
+            </div>
 
             <FormInput
               label="Commercial assigné"
@@ -347,23 +343,53 @@ const UserForm = ({
         )}
 
         {formData.typeUtilisateur === "Chauffeur" && (
-          <FormInput
-            label="Disponibilité"
-            name="disponible"
-            type="select"
-            placeholder="Sélectionnez la disponibilité"
-            options={
-              <>
-                <option value={1}>Disponible</option>
-                <option value={0}>Non disponible</option>
-              </>
-            }
-            formData={formData}
-            handleFieldChange={handleFieldChange}
-            handleBlur={handleBlur}
-            touched={touched}
-            errors={errors}
-          />
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Disponibilité <span className="text-red-500 ml-1">*</span>
+            </label>
+            <div className="flex gap-6">
+              {[
+                {
+                  value: 1,
+                  label: "Disponible",
+                  icon: <CheckCircle className="h-5 w-5 text-green-600" />,
+                },
+                {
+                  value: 0,
+                  label: "Non disponible",
+                  icon: <XCircle className="h-5 w-5 text-red-600" />,
+                },
+              ].map(({ value, label, icon }) => (
+                <label
+                  key={value}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer transition-all
+                    ${
+                      String(formData.disponible) === String(value)
+                        ? "border-green-600 bg-green-50 shadow"
+                        : "border-gray-200 bg-white hover:bg-gray-50"
+                    }`}
+                >
+                  <input
+                    type="radio"
+                    name="disponible"
+                    value={value}
+                    checked={String(formData.disponible) === String(value)}
+                    onChange={handleFieldChange}
+                    onBlur={handleBlur}
+                    className="accent-green-600"
+                  />
+                  {icon}
+                  <span className="font-medium">{label}</span>
+                </label>
+              ))}
+            </div>
+            {touched.disponible && errors.disponible && (
+              <p className="text-red-500 text-sm flex items-center gap-1">
+                <AlertCircle className="h-4 w-4" />
+                {errors.disponible}
+              </p>
+            )}
+          </div>
         )}
       </div>
 
