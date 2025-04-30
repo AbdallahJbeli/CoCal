@@ -12,8 +12,8 @@ import {
   Shield,
   Coffee,
   Egg,
-  CheckCircle, // For available
-  XCircle, // For not available
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import FormInput from "./FormInput";
 

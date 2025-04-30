@@ -1,7 +1,14 @@
-import React, { useState } from "react";
-import { Calendar } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Calendar, AlertCircle } from "lucide-react";
+import FormInput from "./FormInput";
 
-const DemandeCollecteTab = () => {
+const options = [
+  { value: "marcCafe", label: "Marc de café" },
+  { value: "coquillesOeufs", label: "Coquilles d'œufs" },
+  { value: "lesDeux", label: "Les deux" },
+];
+
+const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
   const [formData, setFormData] = useState({
     typeDechet: "",
     dateSouhaitee: "",
@@ -9,56 +16,138 @@ const DemandeCollecteTab = () => {
     quantiteEstimee: "",
     notesSupplementaires: "",
   });
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
+  // Prefill form when editingDemande changes
+  useEffect(() => {
+    if (editingDemande) {
+      setFormData({
+        typeDechet: editingDemande.type_dechet || "",
+        dateSouhaitee: editingDemande.date_souhaitee
+          ? editingDemande.date_souhaitee.slice(0, 10)
+          : "",
+        heurePreferee: editingDemande.heure_preferee || "",
+        quantiteEstimee: editingDemande.quantite_estimee || "",
+        notesSupplementaires: editingDemande.notes_supplementaires || "",
+      });
+    }
+  }, [editingDemande]);
+
+  const validateField = (name, value) => {
+    switch (name) {
+      case "typeDechet":
+        return !value ? "Le type de déchet est requis" : "";
+      case "dateSouhaitee":
+        return !value ? "La date souhaitée est requise" : "";
+      case "heurePreferee":
+        return !value ? "L'heure préférée est requise" : "";
+      case "quantiteEstimee":
+        if (!value) return "La quantité estimée est requise";
+        if (isNaN(value) || Number(value) <= 0)
+          return "La quantité doit être un nombre positif";
+        return "";
+      default:
+        return "";
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    Object.keys(formData).forEach((key) => {
+      const error = validateField(key, formData[key]);
+      if (error) newErrors[key] = error;
+    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
+  };
+
+  const handleBlur = (e) => {
+    const { name } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    setErrors((prev) => ({
+      ...prev,
+      [name]: validateField(name, formData[name]),
     }));
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) {
+      setTouched({
+        typeDechet: true,
+        dateSouhaitee: true,
+        heurePreferee: true,
+        quantiteEstimee: true,
+        notesSupplementaires: true,
+      });
+      return;
+    }
 
-    // Prepare the request body
     const requestBody = {
       type_dechet: formData.typeDechet,
       date_souhaitee: formData.dateSouhaitee,
       heure_preferee: formData.heurePreferee,
       quantite_estimee: formData.quantiteEstimee,
       notes_supplementaires: formData.notesSupplementaires,
-      statut: "en_attente",
-      date_creation: new Date().toISOString().split("T")[0],
     };
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/client/demande-collecte", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(
-          data.message || "Erreur lors de l'envoi de la demande."
+      let res, data;
+      if (mode === "edit" && editingDemande) {
+        // PUT request for edit
+        res = await fetch(
+          `http://localhost:5000/client/demande-collecte/${editingDemande.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(requestBody),
+          }
         );
+        data = await res.json();
+        if (!res.ok)
+          throw new Error(data.message || "Erreur lors de la modification.");
+        alert("Demande modifiée avec succès !");
+        if (onEditSuccess) onEditSuccess();
+      } else {
+        // POST request for new demande
+        res = await fetch("http://localhost:5000/client/demande-collecte", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            ...requestBody,
+            statut: "en_attente",
+            date_creation: new Date().toISOString().split("T")[0],
+          }),
+        });
+        data = await res.json();
+        if (!res.ok)
+          throw new Error(
+            data.message || "Erreur lors de l'envoi de la demande."
+          );
+        alert("Demande envoyée avec succès !");
+        setFormData({
+          typeDechet: "",
+          dateSouhaitee: "",
+          heurePreferee: "",
+          quantiteEstimee: "",
+          notesSupplementaires: "",
+        });
+        setErrors({});
       }
-
-      alert("Demande envoyée avec succès !");
-      setFormData({
-        typeDechet: "",
-        dateSouhaitee: "",
-        heurePreferee: "",
-        quantiteEstimee: "",
-        notesSupplementaires: "",
-      });
     } catch (err) {
       console.error("Erreur lors de la soumission :", err);
       alert(err.message || "Erreur lors de l'envoi de la demande.");
@@ -66,29 +155,31 @@ const DemandeCollecteTab = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-4 border-gray-200">
-        Gestion des collectes
+    <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-4 border-gray-200 flex items-center gap-2">
+        <Calendar className="w-6 h-6 text-green-600" />
+        {mode === "edit"
+          ? "Modifier la demande"
+          : "Nouvelle demande de collecte"}
       </h2>
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Type de déchet */}
+        {/* Type de déchet (radio group, not FormInput) */}
         <fieldset className="space-y-4">
           <legend className="text-sm font-semibold text-gray-700 mb-2">
             Type de déchet *
           </legend>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {[
-              { value: "marcCafe", label: "Marc de café" },
-              { value: "coquillesOeufs", label: "Coquilles d'œufs" },
-              { value: "lesDeux", label: "Les deux" },
-            ].map((option) => (
+            {options.map((option) => (
               <label
                 key={option.value}
-                className={`flex items-center p-4 rounded-lg border transition-all cursor-pointer ${
-                  formData.typeDechet === option.value
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-blue-300"
-                }`}
+                className={`flex items-center p-4 rounded-xl border-2 transition-all cursor-pointer
+                  ${
+                    formData.typeDechet === option.value
+                      ? "border-green-500 bg-green-50 ring-2 ring-green-100"
+                      : errors.typeDechet && touched.typeDechet
+                      ? "border-red-500"
+                      : "border-gray-200 hover:border-green-300"
+                  }`}
               >
                 <input
                   type="radio"
@@ -96,91 +187,94 @@ const DemandeCollecteTab = () => {
                   value={option.value}
                   checked={formData.typeDechet === option.value}
                   onChange={handleChange}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  onBlur={handleBlur}
+                  className="h-4 w-4 text-green-600 focus:ring-green-500"
                 />
-                <span className="ml-3 text-gray-700">{option.label}</span>
+                <span className="ml-3 text-gray-700 font-medium">
+                  {option.label}
+                </span>
               </label>
             ))}
           </div>
+          {errors.typeDechet && touched.typeDechet && (
+            <p className="text-red-600 text-sm mt-2 flex items-center gap-1">
+              <AlertCircle className="w-4 h-4" />
+              {errors.typeDechet}
+            </p>
+          )}
         </fieldset>
 
-        {/* Date et heure */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Date souhaitée *
-            </label>
-            <div className="relative">
-              <input
-                type="date"
-                name="dateSouhaitee"
-                value={formData.dateSouhaitee}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
-                required
-              />
-              <Calendar className="absolute right-3 top-3.5 h-5 w-5 text-gray-400" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Heure préférée *
-            </label>
-            <select
-              name="heurePreferee"
-              value={formData.heurePreferee}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all appearance-none"
-              required
-            >
-              <option value="">Sélectionnez une heure</option>
-              <option value="matin8_10">🕗 8h - 10h</option>
-              <option value="matin10_12">🕙 10h - 12h</option>
-              <option value="apresMidi14_16">🕑 14h - 16h</option>
-              <option value="apresMidi16_18">🕓 16h - 18h</option>
-            </select>
-          </div>
-        </div>
+        {/* Date souhaitée */}
+        <FormInput
+          label="Date souhaitée *"
+          name="dateSouhaitee"
+          type="date"
+          placeholder=""
+          formData={formData}
+          handleFieldChange={handleChange}
+          handleBlur={handleBlur}
+          touched={touched}
+          errors={errors}
+        />
+
+        {/* Heure préférée */}
+        <FormInput
+          label="Heure préférée *"
+          name="heurePreferee"
+          type="select"
+          placeholder="Sélectionnez une heure"
+          options={[
+            <option key="matin8_10" value="matin8_10">
+              🕗 8h - 10h
+            </option>,
+            <option key="matin10_12" value="matin10_12">
+              🕙 10h - 12h
+            </option>,
+            <option key="apresMidi14_16" value="apresMidi14_16">
+              🕑 14h - 16h
+            </option>,
+            <option key="apresMidi16_18" value="apresMidi16_18">
+              🕓 16h - 18h
+            </option>,
+          ]}
+          formData={formData}
+          handleFieldChange={handleChange}
+          handleBlur={handleBlur}
+          touched={touched}
+          errors={errors}
+        />
 
         {/* Quantité estimée */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Quantité estimée (en kg) *
-          </label>
-          <div className="relative">
-            <input
-              type="number"
-              name="quantiteEstimee"
-              placeholder="Ex: 5"
-              value={formData.quantiteEstimee}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all pr-12"
-              required
-            />
-            <span className="absolute right-4 top-3.5 text-gray-500">kg</span>
-          </div>
-        </div>
+        <FormInput
+          label="Quantité estimée (en kg) *"
+          name="quantiteEstimee"
+          type="number"
+          placeholder="Ex: 5"
+          formData={formData}
+          handleFieldChange={handleChange}
+          handleBlur={handleBlur}
+          touched={touched}
+          errors={errors}
+        />
 
         {/* Notes supplémentaires */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Notes supplémentaires
-          </label>
-          <textarea
-            name="notesSupplementaires"
-            placeholder="Instructions particulières, accès, etc."
-            value={formData.notesSupplementaires}
-            onChange={handleChange}
-            className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all resize-none min-h-[100px]"
-          />
-        </div>
+        <FormInput
+          label="Notes supplémentaires"
+          name="notesSupplementaires"
+          type="text"
+          placeholder="Instructions particulières, accès, etc."
+          formData={formData}
+          handleFieldChange={handleChange}
+          handleBlur={handleBlur}
+          touched={touched}
+          errors={errors}
+        />
 
-        {/* Bouton de soumission */}
         <button
           type="submit"
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.01] focus:outline-none focus:ring-4 focus:ring-blue-200"
+          className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-md active:scale-[0.98]"
         >
-          Soumettre la demande
+          {mode === "edit" ? "Mettre à jour" : "Soumettre la demande"}
         </button>
       </form>
     </div>
