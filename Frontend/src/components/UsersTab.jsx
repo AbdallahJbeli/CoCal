@@ -129,6 +129,7 @@ const UsersTab = ({ users, onUserAdded }) => {
       if (onUserAdded) onUserAdded();
     } catch (err) {
       console.error("Erreur:", err);
+      setError(err.message);
       toast.error(err.message);
     }
   };

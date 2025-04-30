@@ -237,6 +237,49 @@ router.put("/users/:id", [verifyAdmin, validateUserInput], async (req, res) => {
       return sendError(res, 400, "Un autre administrateur existe déjà.");
     }
 
+    if (
+      existingUser[0].typeUtilisateur === "commercial" &&
+      typeUtilisateur &&
+      typeUtilisateur !== "commercial"
+    ) {
+      console.log("Check triggered for commercial role change");
+      const [assignedClients] = await connection.query(
+        "SELECT COUNT(*) AS count FROM client WHERE id_commercial = ?",
+        [id]
+      );
+      if (assignedClients[0].count > 0) {
+        return sendError(
+          res,
+          400,
+          "Impossible de changer le rôle : ce commercial est encore assigné à des clients. faire changer le commercial de ces clients avant de changer le rôle."
+        );
+      }
+    }
+
+    if (
+      existingUser[0].typeUtilisateur.toLowerCase() === "commercial" &&
+      typeUtilisateur &&
+      typeUtilisateur.toLowerCase() !== "commercial"
+    ) {
+      const [assignedClients] = await connection.query(
+        `SELECT c.id_utilisateur, u.nom 
+         FROM client c
+         JOIN utilisateur u ON c.id_utilisateur = u.id
+         WHERE c.id_commercial = ?`,
+        [id]
+      );
+      if (assignedClients.length > 0) {
+        const clientList = assignedClients
+          .map((c) => `${c.nom || "Client"} (ID: ${c.id_utilisateur})`)
+          .join(", ");
+        return sendError(
+          res,
+          400,
+          `Impossible de changer le rôle : ce commercial est encore assigné aux clients suivants : ${clientList}. Veuillez réaffecter les clients avant de changer le rôle.`
+        );
+      }
+    }
+
     const updateFields = [];
     const values = [];
 
@@ -295,19 +338,21 @@ router.delete(
     try {
       await connection.beginTransaction();
 
-      const [adminCount] = await connection.query(
-        "SELECT COUNT(*) AS count FROM utilisateur WHERE typeUtilisateur = 'Admin'"
-      );
-
       const [user] = await connection.query(
         "SELECT typeUtilisateur FROM utilisateur WHERE id = ?",
         [id]
       );
 
+      if (!user.length) {
+        return sendError(res, 404, "Utilisateur non trouvé.");
+      }
+
+      const [adminCount] = await connection.query(
+        "SELECT COUNT(*) AS count FROM utilisateur WHERE typeUtilisateur = 'Admin'"
+      );
       if (
         adminCount[0].count <= 1 &&
-        user.length > 0 &&
-        user[0].typeUtilisateur === "Admin"
+        user[0].typeUtilisateur.toLowerCase() === "admin"
       ) {
         return sendError(
           res,
@@ -316,7 +361,26 @@ router.delete(
         );
       }
 
-      // Set id_commercial to NULL for clients assigned to this commercial
+      if (user[0].typeUtilisateur.toLowerCase() === "commercial") {
+        const [assignedClients] = await connection.query(
+          `SELECT c.id_utilisateur, u.nom 
+           FROM client c
+           JOIN utilisateur u ON c.id_utilisateur = u.id
+           WHERE c.id_commercial = ?`,
+          [id]
+        );
+        if (assignedClients.length > 0) {
+          const clientList = assignedClients
+            .map((c) => `${c.nom || "Client"} (ID: ${c.id_utilisateur})`)
+            .join(", ");
+          return sendError(
+            res,
+            400,
+            `Impossible de supprimer ce commercial : il est encore assigné aux clients suivants : ${clientList}. Veuillez réaffecter les clients avant suppression.`
+          );
+        }
+      }
+
       await connection.query(
         "UPDATE client SET id_commercial = NULL WHERE id_commercial = ?",
         [id]

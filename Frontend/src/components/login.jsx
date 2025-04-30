@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, Mail, Key, ArrowRight, Loader, Eye, EyeOff } from "lucide-react";
+import {
+  AlertCircle,
+  Mail,
+  Key,
+  ArrowRight,
+  Loader,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -21,13 +29,13 @@ const Login = () => {
       try {
         const decoded = JSON.parse(atob(token.split(".")[1]));
         const expirationTime = decoded.exp * 1000; // Convert to milliseconds
-        
+
         if (expirationTime > Date.now()) {
           redirectBasedOnRole(decoded.typeUtilisateur);
         } else {
           localStorage.removeItem("token");
         }
-      } catch (error) {
+      } catch {
         localStorage.removeItem("token");
       }
     }
@@ -35,19 +43,26 @@ const Login = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
-    // Email validation
+
     if (!formData.email) {
       newErrors.email = "L'email est requis";
-    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)) {
+    } else if (
+      !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)
+    ) {
       newErrors.email = "Format d'email invalide";
     }
 
-    // Password validation
     if (!formData.motDePasse) {
       newErrors.motDePasse = "Le mot de passe est requis";
     } else if (formData.motDePasse.length < 6) {
-      newErrors.motDePasse = "Le mot de passe doit contenir au moins 6 caractères";
+      newErrors.motDePasse =
+        "Le mot de passe doit contenir au moins 6 caractères";
+    } else if (
+      formData.motDePasse &&
+      !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.motDePasse)
+    ) {
+      newErrors.motDePasse =
+        "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre";
     }
 
     setErrors(newErrors);
@@ -72,28 +87,28 @@ const Login = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ""
+        [name]: "",
       }));
     }
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    
+
     // Prevent multiple submissions
     if (isSubmitting) return;
-    
+
     // Reset errors
     setServerError("");
-    
+
     // Validate form
     if (!validateForm()) return;
 
@@ -112,17 +127,16 @@ const Login = () => {
       );
 
       const { token } = response.data;
-      
+
       // Store token securely
       localStorage.setItem("token", token);
-      
+
       // Decode token and redirect
       const decoded = JSON.parse(atob(token.split(".")[1]));
       redirectBasedOnRole(decoded.typeUtilisateur);
-
     } catch (err) {
       let errorMessage = "Erreur lors de la connexion";
-      
+
       if (err.response) {
         // Server responded with error
         errorMessage = err.response.data.message || errorMessage;
@@ -130,7 +144,7 @@ const Login = () => {
         // No response received
         errorMessage = "Impossible de contacter le serveur";
       }
-      
+
       setServerError(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -217,7 +231,11 @@ const Login = () => {
               onClick={togglePasswordVisibility}
               className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 focus:outline-none"
               tabIndex={-1} // Prevent tab focus as it's not crucial for form completion
-              aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              aria-label={
+                showPassword
+                  ? "Masquer le mot de passe"
+                  : "Afficher le mot de passe"
+              }
             >
               {showPassword ? (
                 <EyeOff className="h-5 w-5" />
