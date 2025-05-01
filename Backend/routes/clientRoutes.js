@@ -11,6 +11,10 @@ const demandeCollecteValidation = [
   body("date_souhaitee").notEmpty().withMessage("date_souhaitee requise"),
 ];
 
+const sendError = (res, status, message) => {
+  res.status(status).json({ message });
+};
+
 router.post(
   "/demande-collecte",
   verifyClient,
@@ -31,9 +35,11 @@ router.post(
 
     const date_creation = new Date();
     const statut = "en_attente";
+    const connection = await pool.getConnection();
 
     try {
-      const [result] = await pool.query(
+      await connection.beginTransaction();
+      const [result] = await connection.query(
         `INSERT INTO demande_collecte 
         (id_client, id_commercial, type_dechet, date_souhaitee, heure_preferee, quantite_estimee, notes_supplementaires, statut, date_creation)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -49,13 +55,17 @@ router.post(
           date_creation,
         ]
       );
+      await connection.commit();
       res.status(201).json({
         message: "Demande envoyée avec succès",
         demande_id: result.insertId,
       });
     } catch (err) {
+      await connection.rollback();
       console.error("Erreur serveur:", err);
-      res.status(500).json({ message: "Erreur serveur" });
+      sendError(res, 500, "Erreur serveur");
+    } finally {
+      connection.release();
     }
   }
 );
@@ -92,17 +102,20 @@ router.put(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-
+    const connection = await pool.getConnection();
     try {
-      const [[demande]] = await pool.query(
+      await connection.beginTransaction();
+      const [[demande]] = await connection.query(
         "SELECT * FROM demande_collecte WHERE id = ?",
         [id]
       );
       if (!demande) {
-        return res.status(404).json({ message: "Demande introuvable" });
+        await connection.rollback();
+        return sendError(res, 404, "Demande introuvable");
       }
       if (demande.id_client !== req.client.id) {
-        return res.status(403).json({ message: "Accès non autorisé" });
+        await connection.rollback();
+        return sendError(res, 403, "Accès non autorisé");
       }
 
       const updateFields = [];
@@ -130,51 +143,58 @@ router.put(
       }
 
       if (updateFields.length === 0) {
-        return res
-          .status(400)
-          .json({ message: "Aucune donnée à mettre à jour." });
+        await connection.rollback();
+        return sendError(res, 400, "Aucune donnée à mettre à jour.");
       }
 
       values.push(id);
 
-      await pool.query(
+      await connection.query(
         `UPDATE demande_collecte SET ${updateFields.join(", ")} WHERE id = ?`,
         values
       );
-
+      await connection.commit();
       res.status(200).json({ message: "Demande modifiée avec succès." });
     } catch (err) {
+      await connection.rollback();
       console.error("Erreur serveur:", err);
-      res.status(500).json({ message: "Erreur serveur" });
+      sendError(res, 500, "Erreur serveur");
+    } finally {
+      connection.release();
     }
   }
 );
 
-// DELETE: Supprimer une demande de collecte
 router.delete(
   "/demande-collecte/:id",
   verifyClient,
   fetchClient,
   async (req, res) => {
     const { id } = req.params;
-
+    const connection = await pool.getConnection();
     try {
-      const [[demande]] = await pool.query(
+      await connection.beginTransaction();
+      const [[demande]] = await connection.query(
         "SELECT * FROM demande_collecte WHERE id = ?",
         [id]
       );
       if (!demande) {
-        return res.status(404).json({ message: "Demande introuvable" });
+        await connection.rollback();
+        return sendError(res, 404, "Demande introuvable");
       }
       if (demande.id_client !== req.client.id) {
-        return res.status(403).json({ message: "Accès non autorisé" });
+        await connection.rollback();
+        return sendError(res, 403, "Accès non autorisé");
       }
-
-      await pool.query("DELETE FROM demande_collecte WHERE id = ?", [id]);
+      await connection.query("DELETE FROM demande_collecte WHERE id = ?", [id]);
+      await connection.commit();
       res.status(200).json({ message: "Demande supprimée avec succès." });
     } catch (err) {
+      await connection.rollback();
       console.error("Erreur serveur:", err);
-      res.status(500).json({ message: "Erreur serveur" });
+      sendError(res, 500, "Erreur serveur");
+    } finally {
+      connection.release();
     }
   }
 );

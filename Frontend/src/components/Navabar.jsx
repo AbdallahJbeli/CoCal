@@ -20,7 +20,6 @@ const Navabar = () => {
             </span>
           </a>
 
-          {/* Mobile menu toggle */}
           <input className="peer hidden" type="checkbox" id="navbar-open" />
           <label
             className="absolute right-3 top-4 cursor-pointer sm:hidden"
@@ -30,7 +29,6 @@ const Navabar = () => {
             <Menu className="h-7 w-7 text-gray-600 hover:text-green-600 transition-colors" />
           </label>
 
-          {/* Navigation links */}
           <nav
             aria-label="Header Navigation"
             className="peer-checked:flex hidden pb-4 sm:flex sm:pb-0"

@@ -1,12 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DemandeCollecteTab from "./DemandeCollecteTab";
-import { Trash2, CalendarClock, Scale, Edit, Trash, X } from "lucide-react";
+import {
+  Trash2,
+  CalendarClock,
+  Scale,
+  Edit,
+  Trash,
+  X,
+  MapPin,
+} from "lucide-react";
+import { toast } from "react-hot-toast";
 
 const DemandeList = () => {
   const [demandes, setDemandes] = useState([]);
   const [editingDemande, setEditingDemande] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [demandeToDelete, setDemandeToDelete] = useState(null);
   const navigate = useNavigate();
 
   const fetchDemandes = async () => {
@@ -34,10 +45,7 @@ const DemandeList = () => {
     fetchDemandes();
   }, []);
 
-  // Delete handler
   const handleDelete = async (id) => {
-    if (!window.confirm("Voulez-vous vraiment supprimer cette demande ?"))
-      return;
     const token = localStorage.getItem("token");
     try {
       const res = await fetch(
@@ -51,22 +59,21 @@ const DemandeList = () => {
       );
       if (res.ok) {
         setDemandes((prev) => prev.filter((d) => d.id !== id));
+        toast.success("Demande supprimée avec succès !");
       } else {
-        alert("Erreur lors de la suppression.");
+        toast.error("Erreur lors de la suppression.");
       }
     } catch (err) {
       console.error(err);
-      alert("Erreur lors de la suppression.");
+      toast.error("Erreur lors de la suppression.");
     }
   };
 
-  // Edit handler
   const handleEdit = (demande) => {
     setEditingDemande(demande);
     setShowEditModal(true);
   };
 
-  // Callback after editing
   const handleEditSuccess = () => {
     setShowEditModal(false);
     setEditingDemande(null);
@@ -137,7 +144,6 @@ const DemandeList = () => {
                   </p>
                 </div>
               )}
-
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => handleEdit(d)}
@@ -147,7 +153,10 @@ const DemandeList = () => {
                   Modifier
                 </button>
                 <button
-                  onClick={() => handleDelete(d.id)}
+                  onClick={() => {
+                    setShowConfirmModal(true);
+                    setDemandeToDelete(d.id);
+                  }}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
                 >
                   <Trash className="w-4 h-4" />
@@ -159,9 +168,8 @@ const DemandeList = () => {
         ))}
       </ul>
 
-      {/* Enhanced modal styling */}
       {showEditModal && editingDemande && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-xl relative animate-scale-in">
             <button
               className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full transition-colors"
@@ -174,6 +182,34 @@ const DemandeList = () => {
               onEditSuccess={handleEditSuccess}
               mode="edit"
             />
+          </div>
+        </div>
+      )}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+          <div className="bg-white p-6 rounded-xl shadow-xl max-w-sm w-full">
+            <h4 className="text-lg font-bold mb-4">Confirmer la suppression</h4>
+            <p className="mb-6">
+              Voulez-vous vraiment supprimer cette demande ?
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={async () => {
+                  setShowConfirmModal(false);
+                  await handleDelete(demandeToDelete);
+                  setDemandeToDelete(null);
+                }}
+                className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600"
+              >
+                Supprimer
+              </button>
+            </div>
           </div>
         </div>
       )}

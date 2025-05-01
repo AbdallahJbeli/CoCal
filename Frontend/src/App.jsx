@@ -6,7 +6,7 @@ import Login from "./components/login";
 import Adminpage from "./pages/Adminpage";
 import AdminRoute from "../routes/AdminRoute";
 import ClientRoute from "../routes/ClientRoute";
-import ClientPage from "./pages/Clientpage";
+import ClientPage from "./pages/ClientPage";
 import CommercialRoute from "../routes/CommercialRoute";
 import CommercialPage from "./pages/CommercialPage";
 

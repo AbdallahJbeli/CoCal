@@ -195,7 +195,7 @@ const UserForm = ({
             {[
               {
                 type: "Admin",
-                icon: <Shield className="h-5 w-5 text-purple-600" />, // Changed to Shield icon for Admin
+                icon: <Shield className="h-5 w-5 text-purple-600" />,
               },
               {
                 type: "Client",
@@ -267,7 +267,6 @@ const UserForm = ({
               errors={errors}
             />
 
-            {/* Type de client with icons */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Type de client <span className="text-red-500 ml-1">*</span>
@@ -276,11 +275,11 @@ const UserForm = ({
                 {[
                   {
                     type: "Restaurant",
-                    icon: <Egg className="h-5 w-5 text-orange-600" />, // Example icon
+                    icon: <Egg className="h-5 w-5 text-orange-600" />,
                   },
                   {
                     type: "Café",
-                    icon: <Coffee className="h-5 w-5 text-brown-600" />, // Example icon, you may need to import Coffee from lucide-react
+                    icon: <Coffee className="h-5 w-5 text-brown-600" />,
                   },
                   {
                     type: "Café-restaut",

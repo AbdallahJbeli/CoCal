@@ -18,7 +18,6 @@ const UserTable = ({ users, handleEdit, handleDelete, filterType }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Memoized sorting function
   const sortData = (data, key, direction) => {
     return [...data].sort((a, b) => {
       if (a[key] === null) return 1;
@@ -33,7 +32,6 @@ const UserTable = ({ users, handleEdit, handleDelete, filterType }) => {
     });
   };
 
-  // Handle sort
   const requestSort = (key) => {
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
@@ -42,7 +40,6 @@ const UserTable = ({ users, handleEdit, handleDelete, filterType }) => {
     setSortConfig({ key, direction });
   };
 
-  // Memoized filtered and sorted data
   const filteredAndSortedUsers = useMemo(() => {
     let result = users.filter((user) => {
       const matchesFilter =
@@ -62,14 +59,12 @@ const UserTable = ({ users, handleEdit, handleDelete, filterType }) => {
     return sortData(result, sortConfig.key, sortConfig.direction);
   }, [users, filterType, searchTerm, sortConfig]);
 
-  // Pagination
   const totalPages = Math.ceil(filteredAndSortedUsers.length / itemsPerPage);
   const paginatedUsers = filteredAndSortedUsers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  // Handle delete with confirmation
   const handleDeleteClick = async (userId) => {
     if (
       window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")
@@ -110,7 +105,6 @@ const UserTable = ({ users, handleEdit, handleDelete, filterType }) => {
 
   return (
     <div className="mt-8 space-y-4">
-      {/* Search and info bar */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-lg border border-gray-100">
         <div className="relative w-full sm:w-96">
           <input
@@ -130,7 +124,6 @@ const UserTable = ({ users, handleEdit, handleDelete, filterType }) => {
         </div>
       </div>
 
-      {/* Table */}
       {filteredAndSortedUsers.length === 0 ? (
         <div className="text-center py-8 bg-white rounded-xl border border-gray-100">
           <UserX className="h-12 w-12 text-gray-400 mx-auto mb-3" />
@@ -208,7 +201,6 @@ const UserTable = ({ users, handleEdit, handleDelete, filterType }) => {
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center gap-2 mt-4">
           <button

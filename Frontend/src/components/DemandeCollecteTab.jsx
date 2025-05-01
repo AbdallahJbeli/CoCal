@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Calendar, AlertCircle } from "lucide-react";
 import FormInput from "./FormInput";
+import TypeDechetRadioGroup from "./TypeDechetRadioGroup";
+import { toast } from "react-hot-toast";
 
 const options = [
   { value: "marcCafe", label: "Marc de café" },
@@ -19,7 +21,6 @@ const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
-  // Prefill form when editingDemande changes
   useEffect(() => {
     if (editingDemande) {
       setFormData({
@@ -87,6 +88,7 @@ const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
         quantiteEstimee: true,
         notesSupplementaires: true,
       });
+      toast.error("Veuillez corriger les erreurs du formulaire.");
       return;
     }
 
@@ -102,7 +104,6 @@ const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
       const token = localStorage.getItem("token");
       let res, data;
       if (mode === "edit" && editingDemande) {
-        // PUT request for edit
         res = await fetch(
           `http://localhost:5000/client/demande-collecte/${editingDemande.id}`,
           {
@@ -117,10 +118,9 @@ const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
         data = await res.json();
         if (!res.ok)
           throw new Error(data.message || "Erreur lors de la modification.");
-        alert("Demande modifiée avec succès !");
+        toast.success("Demande modifiée avec succès !");
         if (onEditSuccess) onEditSuccess();
       } else {
-        // POST request for new demande
         res = await fetch("http://localhost:5000/client/demande-collecte", {
           method: "POST",
           headers: {
@@ -138,7 +138,7 @@ const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
           throw new Error(
             data.message || "Erreur lors de l'envoi de la demande."
           );
-        alert("Demande envoyée avec succès !");
+        toast.success("Demande envoyée avec succès !");
         setFormData({
           typeDechet: "",
           dateSouhaitee: "",
@@ -150,7 +150,7 @@ const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
       }
     } catch (err) {
       console.error("Erreur lors de la soumission :", err);
-      alert(err.message || "Erreur lors de l'envoi de la demande.");
+      toast.error(err.message || "Erreur lors de l'envoi de la demande.");
     }
   };
 
@@ -163,48 +163,15 @@ const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
           : "Nouvelle demande de collecte"}
       </h2>
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Type de déchet (radio group, not FormInput) */}
-        <fieldset className="space-y-4">
-          <legend className="text-sm font-semibold text-gray-700 mb-2">
-            Type de déchet *
-          </legend>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {options.map((option) => (
-              <label
-                key={option.value}
-                className={`flex items-center p-4 rounded-xl border-2 transition-all cursor-pointer
-                  ${
-                    formData.typeDechet === option.value
-                      ? "border-green-500 bg-green-50 ring-2 ring-green-100"
-                      : errors.typeDechet && touched.typeDechet
-                      ? "border-red-500"
-                      : "border-gray-200 hover:border-green-300"
-                  }`}
-              >
-                <input
-                  type="radio"
-                  name="typeDechet"
-                  value={option.value}
-                  checked={formData.typeDechet === option.value}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  className="h-4 w-4 text-green-600 focus:ring-green-500"
-                />
-                <span className="ml-3 text-gray-700 font-medium">
-                  {option.label}
-                </span>
-              </label>
-            ))}
-          </div>
-          {errors.typeDechet && touched.typeDechet && (
-            <p className="text-red-600 text-sm mt-2 flex items-center gap-1">
-              <AlertCircle className="w-4 h-4" />
-              {errors.typeDechet}
-            </p>
-          )}
-        </fieldset>
+        <TypeDechetRadioGroup
+          options={options}
+          value={formData.typeDechet}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          error={errors.typeDechet}
+          touched={touched.typeDechet}
+        />
 
-        {/* Date souhaitée */}
         <FormInput
           label="Date souhaitée *"
           name="dateSouhaitee"
@@ -217,7 +184,6 @@ const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
           errors={errors}
         />
 
-        {/* Heure préférée */}
         <FormInput
           label="Heure préférée *"
           name="heurePreferee"
@@ -244,7 +210,6 @@ const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
           errors={errors}
         />
 
-        {/* Quantité estimée */}
         <FormInput
           label="Quantité estimée (en kg) *"
           name="quantiteEstimee"
@@ -257,7 +222,6 @@ const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
           errors={errors}
         />
 
-        {/* Notes supplémentaires */}
         <FormInput
           label="Notes supplémentaires"
           name="notesSupplementaires"

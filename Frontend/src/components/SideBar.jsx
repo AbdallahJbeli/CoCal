@@ -41,7 +41,6 @@ const Sidebar = ({ tabs, setActiveTab }) => {
 
   return (
     <div className="fixed w-16 md:w-64 h-screen bg-white/95 backdrop-blur-sm border-r border-gray-200 flex flex-col shadow-xl transition-all duration-300 z-50">
-      {/* Logo Header */}
       <div className="flex items-center justify-center h-20 border-b border-gray-200 p-4">
         <div className="flex items-center space-x-2">
           <Coffee className="h-8 w-8 text-amber-600" />
@@ -55,7 +54,6 @@ const Sidebar = ({ tabs, setActiveTab }) => {
         </div>
       </div>
 
-      {/* Navigation Items */}
       <nav className="flex-1 overflow-y-auto px-2 py-6 md:px-4">
         <ul className="space-y-2">
           {tabs.map((tab) => (
@@ -79,7 +77,6 @@ const Sidebar = ({ tabs, setActiveTab }) => {
         </ul>
       </nav>
 
-      {/* Logout Button */}
       <div className="p-2 md:p-4 border-t border-gray-200 bg-gray-50/50">
         <button
           onClick={handleLogout}

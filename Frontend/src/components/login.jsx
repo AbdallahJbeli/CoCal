@@ -22,13 +22,12 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  // Check if user is already logged in
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       try {
         const decoded = JSON.parse(atob(token.split(".")[1]));
-        const expirationTime = decoded.exp * 1000; // Convert to milliseconds
+        const expirationTime = decoded.exp * 1000;
 
         if (expirationTime > Date.now()) {
           redirectBasedOnRole(decoded.typeUtilisateur);
@@ -91,7 +90,6 @@ const Login = () => {
       ...prev,
       [name]: value,
     }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -103,13 +101,10 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    // Prevent multiple submissions
     if (isSubmitting) return;
 
-    // Reset errors
     setServerError("");
 
-    // Validate form
     if (!validateForm()) return;
 
     setIsSubmitting(true);
@@ -122,26 +117,22 @@ const Login = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          timeout: 5000, // 5 second timeout
+          timeout: 5000,
         }
       );
 
       const { token } = response.data;
 
-      // Store token securely
       localStorage.setItem("token", token);
 
-      // Decode token and redirect
       const decoded = JSON.parse(atob(token.split(".")[1]));
       redirectBasedOnRole(decoded.typeUtilisateur);
     } catch (err) {
       let errorMessage = "Erreur lors de la connexion";
 
       if (err.response) {
-        // Server responded with error
         errorMessage = err.response.data.message || errorMessage;
       } else if (err.request) {
-        // No response received
         errorMessage = "Impossible de contacter le serveur";
       }
 
@@ -151,13 +142,11 @@ const Login = () => {
     }
   };
 
-  // Add toggle password visibility function
   const togglePasswordVisibility = (e) => {
-    e.preventDefault(); // Prevent form submission
+    e.preventDefault();
     setShowPassword(!showPassword);
   };
 
-  // Cleanup function
   useEffect(() => {
     return () => {
       setFormData({ email: "", motDePasse: "" });
@@ -230,7 +219,7 @@ const Login = () => {
               type="button"
               onClick={togglePasswordVisibility}
               className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 focus:outline-none"
-              tabIndex={-1} // Prevent tab focus as it's not crucial for form completion
+              tabIndex={-1}
               aria-label={
                 showPassword
                   ? "Masquer le mot de passe"

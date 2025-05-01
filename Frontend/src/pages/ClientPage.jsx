@@ -33,19 +33,15 @@ const ClientPage = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar Component */}
       <Sidebar tabs={clientTabs} setActiveTab={setActiveTab} />
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col ml-16 md:ml-64">
-        {/* Header Section */}
         <div className="fixed top-0 left-16 md:left-64 right-0 h-20 px-6 bg-white/95 border-b border-gray-200 shadow-sm flex items-center justify-between z-10">
           <h1 className="text-2xl font-bold text-gray-800 tracking-wide">
             {getHeaderTitle()}
           </h1>
         </div>
 
-        {/* Tab Content */}
         <div className="flex-1 p-6 mt-20 overflow-y-auto bg-gray-50">
           {activeTab === "Vue d'ensemble" && (
             <div>
