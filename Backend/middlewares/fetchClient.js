@@ -2,7 +2,7 @@ import pool from "../database.js";
 
 const fetchClient = async (req, res, next) => {
   try {
-    const id_utilisateur = req.user.id_client;
+    const id_utilisateur = req.user.id;
     const [[client]] = await pool.query(
       "SELECT id, id_commercial FROM client WHERE id_utilisateur = ?",
       [id_utilisateur]

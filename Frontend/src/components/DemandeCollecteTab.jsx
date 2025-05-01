@@ -3,12 +3,35 @@ import { Calendar, AlertCircle } from "lucide-react";
 import FormInput from "./FormInput";
 import TypeDechetRadioGroup from "./TypeDechetRadioGroup";
 import { toast } from "react-hot-toast";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 const options = [
   { value: "marcCafe", label: "Marc de café" },
   { value: "coquillesOeufs", label: "Coquilles d'œufs" },
   { value: "lesDeux", label: "Les deux" },
 ];
+
+// Fix default marker icon for leaflet in React
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
+
+function LocationPicker({ value, onChange }) {
+  useMapEvents({
+    click(e) {
+      onChange(e.latlng);
+    },
+  });
+  return value ? <Marker position={value} /> : null;
+}
 
 const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
   const [formData, setFormData] = useState({
@@ -20,6 +43,11 @@ const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
   });
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [location, setLocation] = useState(
+    editingDemande && editingDemande.latitude && editingDemande.longitude
+      ? { lat: editingDemande.latitude, lng: editingDemande.longitude }
+      : null
+  );
 
   useEffect(() => {
     if (editingDemande) {
@@ -32,6 +60,12 @@ const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
         quantiteEstimee: editingDemande.quantite_estimee || "",
         notesSupplementaires: editingDemande.notes_supplementaires || "",
       });
+      if (editingDemande.latitude && editingDemande.longitude) {
+        setLocation({
+          lat: editingDemande.latitude,
+          lng: editingDemande.longitude,
+        });
+      }
     }
   }, [editingDemande]);
 
@@ -91,6 +125,10 @@ const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
       toast.error("Veuillez corriger les erreurs du formulaire.");
       return;
     }
+    if (!location) {
+      toast.error("Veuillez sélectionner votre position sur la carte.");
+      return;
+    }
 
     const requestBody = {
       type_dechet: formData.typeDechet,
@@ -98,6 +136,8 @@ const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
       heure_preferee: formData.heurePreferee,
       quantite_estimee: formData.quantiteEstimee,
       notes_supplementaires: formData.notesSupplementaires,
+      latitude: location.lat,
+      longitude: location.lng,
     };
 
     try {
@@ -147,6 +187,7 @@ const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
           notesSupplementaires: "",
         });
         setErrors({});
+        setLocation(null);
       }
     } catch (err) {
       console.error("Erreur lors de la soumission :", err);
@@ -233,6 +274,35 @@ const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
           touched={touched}
           errors={errors}
         />
+
+        {/* Map for location selection */}
+        <div>
+          <label className="block font-medium mb-2">
+            Localisation de collecte <span className="text-red-500">*</span>
+          </label>
+          <div
+            style={{
+              height: 250,
+              width: "100%",
+              borderRadius: 12,
+              overflow: "hidden",
+            }}
+          >
+            <MapContainer
+              center={location || [36.8, 10.18]}
+              zoom={13}
+              style={{ height: "100%", width: "100%" }}
+            >
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <LocationPicker value={location} onChange={setLocation} />
+            </MapContainer>
+          </div>
+          {!location && (
+            <div className="text-red-500 text-sm mt-1">
+              Cliquez sur la carte pour sélectionner votre position.
+            </div>
+          )}
+        </div>
 
         <button
           type="submit"

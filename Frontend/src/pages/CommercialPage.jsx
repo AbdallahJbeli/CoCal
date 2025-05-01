@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../components/SideBar";
 
 const adminTabs = [
@@ -13,6 +13,8 @@ const adminTabs = [
 
 const CommercialPage = () => {
   const [activeTab, setActiveTab] = useState("Vue d'ensemble");
+  const [demandes, setDemandes] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const getHeaderTitle = () => {
     switch (activeTab) {
@@ -35,6 +37,34 @@ const CommercialPage = () => {
     }
   };
 
+  // Fetch demandes when "Collectes" tab is active
+  useEffect(() => {
+    if (activeTab === "Collectes") {
+      const fetchDemandes = async () => {
+        setLoading(true);
+        try {
+          const token = localStorage.getItem("token");
+          const res = await fetch("http://localhost:5000/commercial/demandes", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (res.ok) {
+            const data = await res.json();
+
+            setDemandes(data);
+          } else {
+            setDemandes([]);
+          }
+        } catch {
+          setDemandes([]);
+        }
+        setLoading(false);
+      };
+      fetchDemandes();
+    }
+  }, [activeTab]);
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar tabs={adminTabs} setActiveTab={setActiveTab} />
@@ -55,13 +85,43 @@ const CommercialPage = () => {
               <p className="text-gray-600">Your dashboard content goes here.</p>
             </div>
           )}
-          {activeTab === "Utilisateurs" && <h1>Utilisateur</h1>}
           {activeTab === "Collectes" && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Collectes Content
+                Mes Collectes Assignées
               </h2>
-              <p className="text-gray-600">Your collectes content goes here.</p>
+              {loading ? (
+                <p className="text-gray-600">Chargement...</p>
+              ) : demandes.length === 0 ? (
+                <p className="text-gray-600">Aucune collecte trouvée.</p>
+              ) : (
+                <table className="min-w-full bg-white rounded-xl shadow overflow-hidden">
+                  <thead>
+                    <tr>
+                      <th className="px-4 py-2 text-left">Type</th>
+                      <th className="px-4 py-2 text-left">Date souhaitée</th>
+                      <th className="px-4 py-2 text-left">Heure</th>
+                      <th className="px-4 py-2 text-left">Quantité</th>
+                      <th className="px-4 py-2 text-left">Statut</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {demandes.map((d) => (
+                      <tr key={d.id}>
+                        <td className="px-4 py-2">{d.type_dechet}</td>
+                        <td className="px-4 py-2">
+                          {new Date(d.date_souhaitee).toLocaleDateString(
+                            "fr-FR"
+                          )}
+                        </td>
+                        <td className="px-4 py-2">{d.heure_preferee}</td>
+                        <td className="px-4 py-2">{d.quantite_estimee} kg</td>
+                        <td className="px-4 py-2">{d.statut}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           )}
           {activeTab === "Clients" && (

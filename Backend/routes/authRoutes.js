@@ -8,8 +8,8 @@ dotenv.config();
 
 const router = express.Router();
 
-const generateJWT = (id_client, typeUtilisateur) => {
-  return jwt.sign({ id_client, typeUtilisateur }, process.env.JWT_KEY, {
+const generateJWT = (id, typeUtilisateur) => {
+  return jwt.sign({ id, typeUtilisateur }, process.env.JWT_KEY, {
     expiresIn: "3h",
   });
 };

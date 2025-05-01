@@ -11,6 +11,8 @@ import {
   MapPin,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 
 const DemandeList = () => {
   const [demandes, setDemandes] = useState([]);
@@ -144,6 +146,18 @@ const DemandeList = () => {
                   </p>
                 </div>
               )}
+
+              {d.latitude && d.longitude && (
+                <a
+                  href={`https://www.openstreetmap.org/?mlat=${d.latitude}&mlon=${d.longitude}#map=18/${d.latitude}/${d.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-green-700 hover:underline mt-2"
+                >
+                  <MapPin className="w-4 h-4" />
+                  Voir la localisation
+                </a>
+              )}
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => handleEdit(d)}
@@ -169,19 +183,28 @@ const DemandeList = () => {
       </ul>
 
       {showEditModal && editingDemande && (
-        <div className="fixed inset-0 bg-black bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-xl relative animate-scale-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div
+            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-2 p-0 flex flex-col max-h-[90vh] overflow-y-auto animate-scale-in"
+            style={{
+              boxShadow: "0 8px 40px rgba(0,0,0,0.18)",
+              padding: "0",
+            }}
+          >
             <button
-              className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full transition-colors"
+              className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full transition-colors z-10"
               onClick={() => setShowEditModal(false)}
+              aria-label="Fermer"
             >
               <X className="w-6 h-6 text-gray-500" />
             </button>
-            <DemandeCollecteTab
-              editingDemande={editingDemande}
-              onEditSuccess={handleEditSuccess}
-              mode="edit"
-            />
+            <div className="p-6">
+              <DemandeCollecteTab
+                editingDemande={editingDemande}
+                onEditSuccess={handleEditSuccess}
+                mode="edit"
+              />
+            </div>
           </div>
         </div>
       )}

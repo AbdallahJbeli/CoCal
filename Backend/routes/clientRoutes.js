@@ -9,6 +9,9 @@ const router = express.Router();
 const demandeCollecteValidation = [
   body("type_dechet").notEmpty().withMessage("type_dechet requis"),
   body("date_souhaitee").notEmpty().withMessage("date_souhaitee requise"),
+  // Add validation for latitude/longitude if you want (optional)
+  // body("latitude").optional().isFloat({ min: -90, max: 90 }),
+  // body("longitude").optional().isFloat({ min: -180, max: 180 }),
 ];
 
 const sendError = (res, status, message) => {
@@ -31,6 +34,8 @@ router.post(
       heure_preferee,
       quantite_estimee,
       notes_supplementaires,
+      latitude, // <-- add
+      longitude, // <-- add
     } = req.body;
 
     const date_creation = new Date();
@@ -41,8 +46,8 @@ router.post(
       await connection.beginTransaction();
       const [result] = await connection.query(
         `INSERT INTO demande_collecte 
-        (id_client, id_commercial, type_dechet, date_souhaitee, heure_preferee, quantite_estimee, notes_supplementaires, statut, date_creation)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (id_client, id_commercial, type_dechet, date_souhaitee, heure_preferee, quantite_estimee, notes_supplementaires, statut, date_creation, latitude, longitude)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           req.client.id,
           req.client.id_commercial,
@@ -53,6 +58,8 @@ router.post(
           notes_supplementaires,
           statut,
           date_creation,
+          latitude || null,
+          longitude || null,
         ]
       );
       await connection.commit();
@@ -96,6 +103,8 @@ router.put(
       heure_preferee,
       quantite_estimee,
       notes_supplementaires,
+      latitude, // <-- add
+      longitude, // <-- add
     } = req.body;
 
     const errors = validationResult(req);
@@ -140,6 +149,14 @@ router.put(
       if (notes_supplementaires) {
         updateFields.push("notes_supplementaires = ?");
         values.push(notes_supplementaires);
+      }
+      if (latitude !== undefined) {
+        updateFields.push("latitude = ?");
+        values.push(latitude);
+      }
+      if (longitude !== undefined) {
+        updateFields.push("longitude = ?");
+        values.push(longitude);
       }
 
       if (updateFields.length === 0) {
