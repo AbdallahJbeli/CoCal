@@ -33,6 +33,7 @@ const Sidebar = ({ tabs, setActiveTab }) => {
   const location = useLocation();
   const isClientPage = location.pathname.includes("client");
   const isCommercialPage = location.pathname.includes("commercial");
+  const isChauffeurPage = location.pathname.includes("chauffeur");
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -49,6 +50,8 @@ const Sidebar = ({ tabs, setActiveTab }) => {
               ? "CoCal Client"
               : isCommercialPage
               ? "CoCal Commercial"
+              : isChauffeurPage
+              ? "CoCal Chauffeur"
               : "CoCal Admin"}
           </span>
         </div>

@@ -9,6 +9,8 @@ import ClientRoute from "../routes/ClientRoute";
 import ClientPage from "./pages/ClientPage";
 import CommercialRoute from "../routes/CommercialRoute";
 import CommercialPage from "./pages/CommercialPage";
+import ChauffeurRoute from "../routes/ChauffeurRoute";
+import ChauffeurPage from "./pages/ChauffeurPage";
 
 const App = () => {
   return (
@@ -38,6 +40,14 @@ const App = () => {
             <CommercialRoute>
               <CommercialPage />
             </CommercialRoute>
+          }
+        />
+        <Route
+          path="/chauffeur-space"
+          element={
+            <ChauffeurRoute>
+              <ChauffeurPage />
+            </ChauffeurRoute>
           }
         />
         <Route path="/login" element={<Login />} />

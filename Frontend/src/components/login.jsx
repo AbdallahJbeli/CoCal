@@ -79,6 +79,9 @@ const Login = () => {
       case "commercial":
         navigate("/commercial-space");
         break;
+      case "chauffeur":
+        navigate("/chauffeur-space");
+        break;
       default:
         navigate("/");
     }
