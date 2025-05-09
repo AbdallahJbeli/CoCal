@@ -53,11 +53,12 @@ const handleRoleInsertion = async (
       "INSERT INTO chauffeur (id_utilisateur, disponible) VALUES (?, ?) ON DUPLICATE KEY UPDATE disponible = VALUES(disponible)",
       [userId, disponible !== undefined ? disponible : 1]
     );
-  } else {
-    await connection.query("DELETE FROM chauffeur WHERE id_utilisateur = ?", [
-      userId,
-    ]);
   }
+  // } else {
+  //   await connection.query("DELETE FROM chauffeur WHERE id_utilisateur = ?", [
+  //     userId,
+  //   ]);
+  // }
 
   if (typeUtilisateur === "Client") {
     await connection.query(
@@ -70,11 +71,12 @@ const handleRoleInsertion = async (
        id_commercial = VALUES(id_commercial)`,
       [userId, num_telephone, adresse, type_client, id_commercial]
     );
-  } else {
-    await connection.query("DELETE FROM client WHERE id_utilisateur = ?", [
-      userId,
-    ]);
   }
+  // } else {
+  //   await connection.query("DELETE FROM client WHERE id_utilisateur = ?", [
+  //     userId,
+  //   ]);
+  // }
 };
 
 const sendError = (res, status, message) => {
@@ -121,7 +123,7 @@ router.post(
       res.status(201).json({ message: "Utilisateur créé avec succès." });
     } catch (err) {
       await connection.rollback();
-      console.error("Erreur création utilisateur:", err);
+      // console.error("Erreur création utilisateur:", err);
       sendError(res, 500, "Erreur lors de la création de l'utilisateur.");
     } finally {
       connection.release();
@@ -149,7 +151,7 @@ router.get("/users", verifyAdmin, async (req, res) => {
     `);
     res.status(200).json(users);
   } catch (err) {
-    console.error("Erreur récupération utilisateurs:", err);
+    // console.error("Erreur récupération utilisateurs:", err);
     sendError(res, 500, "Erreur lors de la récupération des utilisateurs.");
   }
 });
@@ -190,7 +192,7 @@ router.get(
 
       res.status(200).json(rows[0]);
     } catch (err) {
-      console.error("Erreur récupération utilisateur:", err);
+      // console.error("Erreur récupération utilisateur:", err);
       sendError(res, 500, "Erreur lors de la récupération de l'utilisateur.");
     }
   }
@@ -230,30 +232,15 @@ router.put("/users/:id", [verifyAdmin, validateUserInput], async (req, res) => {
       req.body.typeUtilisateur &&
       req.body.typeUtilisateur.toLowerCase() !== "admin"
     ) {
-      return sendError(res, 400, "Cannot change admin user type");
+      return sendError(
+        res,
+        400,
+        "Impossible de modifier le type d'utilisateur administrateur"
+      );
     }
 
     if (typeUtilisateur === "Admin" && (await adminExists(id))) {
       return sendError(res, 400, "Un autre administrateur existe déjà.");
-    }
-
-    if (
-      existingUser[0].typeUtilisateur === "commercial" &&
-      typeUtilisateur &&
-      typeUtilisateur !== "commercial"
-    ) {
-      console.log("Check triggered for commercial role change");
-      const [assignedClients] = await connection.query(
-        "SELECT COUNT(*) AS count FROM client WHERE id_commercial = ?",
-        [id]
-      );
-      if (assignedClients[0].count > 0) {
-        return sendError(
-          res,
-          400,
-          "Impossible de changer le rôle : ce commercial est encore assigné à des clients. faire changer le commercial de ces clients avant de changer le rôle."
-        );
-      }
     }
 
     if (
@@ -316,7 +303,7 @@ router.put("/users/:id", [verifyAdmin, validateUserInput], async (req, res) => {
     res.status(200).json({ message: "Utilisateur modifié avec succès." });
   } catch (err) {
     await connection.rollback();
-    console.error("Erreur modification utilisateur:", err);
+    // console.error("Erreur modification utilisateur:", err);
     sendError(res, 500, "Erreur lors de la modification de l'utilisateur.");
   } finally {
     connection.release();
@@ -347,19 +334,19 @@ router.delete(
         return sendError(res, 404, "Utilisateur non trouvé.");
       }
 
-      const [adminCount] = await connection.query(
-        "SELECT COUNT(*) AS count FROM utilisateur WHERE typeUtilisateur = 'Admin'"
-      );
-      if (
-        adminCount[0].count <= 1 &&
-        user[0].typeUtilisateur.toLowerCase() === "admin"
-      ) {
-        return sendError(
-          res,
-          400,
-          "Vous ne pouvez pas supprimer le seul administrateur."
-        );
-      }
+      // const [adminCount] = await connection.query(
+      //   "SELECT COUNT(*) AS count FROM utilisateur WHERE typeUtilisateur = 'Admin'"
+      // );
+      // if (
+      //   adminCount[0].count <= 1 &&
+      //   user[0].typeUtilisateur.toLowerCase() === "admin"
+      // ) {
+      //   return sendError(
+      //     res,
+      //     400,
+      //     "Vous ne pouvez pas supprimer le seul administrateur."
+      //   );
+      // }
 
       if (user[0].typeUtilisateur.toLowerCase() === "commercial") {
         const [assignedClients] = await connection.query(
@@ -381,17 +368,12 @@ router.delete(
         }
       }
 
-      await connection.query(
-        "UPDATE client SET id_commercial = NULL WHERE id_commercial = ?",
-        [id]
-      );
-
-      await connection.query("DELETE FROM chauffeur WHERE id_utilisateur = ?", [
-        id,
-      ]);
-      await connection.query("DELETE FROM client WHERE id_utilisateur = ?", [
-        id,
-      ]);
+      // await connection.query("DELETE FROM chauffeur WHERE id_utilisateur = ?", [
+      //   id,
+      // ]);
+      // await connection.query("DELETE FROM client WHERE id_utilisateur = ?", [
+      //   id,
+      // ]);
 
       const [result] = await connection.query(
         "DELETE FROM utilisateur WHERE id = ?",
@@ -406,7 +388,7 @@ router.delete(
       res.status(200).json({ message: "Utilisateur supprimé avec succès." });
     } catch (err) {
       await connection.rollback();
-      console.error("Erreur suppression utilisateur:", err);
+
       sendError(res, 500, "Erreur lors de la suppression de l'utilisateur.");
     } finally {
       connection.release();

@@ -31,9 +31,6 @@ const UserForm = ({
   const [showPassword, setShowPassword] = useState(false);
   const [touched, setTouched] = useState({});
 
-  const isEditingAdmin =
-    editingUser?.typeUtilisateur?.toLowerCase() === "admin";
-
   const validateField = (name, value) => {
     switch (name) {
       case "nom":
@@ -218,7 +215,7 @@ const UserForm = ({
                       ? "border-green-600 bg-green-50 shadow"
                       : "border-gray-200 bg-white hover:bg-gray-50"
                   }
-                  ${isEditingAdmin ? "opacity-50 cursor-not-allowed" : ""}`}
+                  `}
               >
                 <input
                   type="radio"
@@ -228,7 +225,6 @@ const UserForm = ({
                   onChange={handleFieldChange}
                   onBlur={handleBlur}
                   className="accent-green-600"
-                  disabled={isEditingAdmin}
                 />
                 {icon}
                 <span className="font-medium">{type}</span>

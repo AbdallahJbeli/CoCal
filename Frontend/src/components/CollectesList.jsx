@@ -1,5 +1,15 @@
 import React from "react";
 
+import {
+  Trash2,
+  CalendarClock,
+  Scale,
+  Edit,
+  Trash,
+  X,
+  MapPin,
+} from "lucide-react";
+
 const CollectesList = ({ demandes, loading, onStatusChange }) => (
   <div>
     <h2 className="text-lg font-semibold text-gray-800 mb-4">
@@ -48,9 +58,11 @@ const CollectesList = ({ demandes, loading, onStatusChange }) => (
               </div>
               <div className="space-y-1">
                 <p className="flex items-center gap-2">
+                  <Trash2 className="w-4 h-4 text-gray-500" />
                   <span className="font-medium">{d.type_dechet}</span>
                 </p>
                 <p className="flex items-center gap-2">
+                  <CalendarClock className="w-4 h-4 text-gray-500" />
                   {new Date(d.date_souhaitee).toLocaleDateString("fr-FR", {
                     day: "2-digit",
                     month: "long",
@@ -58,6 +70,7 @@ const CollectesList = ({ demandes, loading, onStatusChange }) => (
                   à {d.heure_preferee}
                 </p>
                 <p className="flex items-center gap-2">
+                  <Scale className="w-4 h-4 text-gray-500" />
                   {d.quantite_estimee} kg
                 </p>
               </div>
@@ -75,6 +88,7 @@ const CollectesList = ({ demandes, loading, onStatusChange }) => (
                   rel="noopener noreferrer"
                   className="flex items-center gap-1 text-green-700 hover:underline mt-2"
                 >
+                  <MapPin className="w-4 h-4" />
                   Voir la localisation
                 </a>
               )}

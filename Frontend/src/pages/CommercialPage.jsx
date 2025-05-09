@@ -43,7 +43,6 @@ const CommercialPage = () => {
     }
   };
 
-  // Fetch demandes when "Collectes" tab is active
   useEffect(() => {
     if (activeTab === "Collectes") {
       const fetchDemandes = async () => {
@@ -71,7 +70,6 @@ const CommercialPage = () => {
     }
   }, [activeTab]);
 
-  // Fetch clients when "Clients" tab is active
   useEffect(() => {
     if (activeTab === "Clients") {
       const fetchClients = async () => {
@@ -112,7 +110,6 @@ const CommercialPage = () => {
     setSelectedClient(clients.find((c) => c.id === clientId));
   };
 
-  // Handler for status change
   const handleStatusChange = async (demandeId, newStatus) => {
     const token = localStorage.getItem("token");
     await fetch(
@@ -126,7 +123,6 @@ const CommercialPage = () => {
         body: JSON.stringify({ statut: newStatus }),
       }
     );
-    // Refresh demandes after update
     const res = await fetch("http://localhost:5000/commercial/demandes", {
       headers: { Authorization: `Bearer ${token}` },
     });

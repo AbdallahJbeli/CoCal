@@ -154,7 +154,6 @@ const UsersTab = ({ users, onUserAdded }) => {
 
   return (
     <div className="space-y-6">
-      {/* Filter Types */}
       <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
         <div className="flex flex-wrap gap-2">
           {["Tous", "Client", "Commercial", "Chauffeur"].map((type) => (
@@ -173,7 +172,6 @@ const UsersTab = ({ users, onUserAdded }) => {
         </div>
       </div>
 
-      {/* Error Display */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center justify-between">
           <div className="flex items-center gap-2 text-red-700">
@@ -189,7 +187,6 @@ const UsersTab = ({ users, onUserAdded }) => {
         </div>
       )}
 
-      {/* User Form */}
       <UserForm
         formData={formData}
         handleChange={handleChange}
@@ -202,7 +199,6 @@ const UsersTab = ({ users, onUserAdded }) => {
         resetForm={resetForm}
       />
 
-      {/* User Table */}
       <UserTable
         users={users}
         handleEdit={handleEdit}
