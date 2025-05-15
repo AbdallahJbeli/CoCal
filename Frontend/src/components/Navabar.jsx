@@ -37,31 +37,32 @@ const Navabar = () => {
               <li>
                 <a
                   className="text-gray-600 hover:text-green-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50 sm:hover:bg-transparent"
-                  href="#"
+                  href="/"
                 >
-                  Home
+                  Accueil
+                </a>
+              </li>
+
+              <li>
+                <a
+                  className="text-gray-600 hover:text-green-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50 sm:hover:bg-transparent"
+                  href="#testimonials"
+                >
+                  Témoignages
                 </a>
               </li>
               <li>
                 <a
                   className="text-gray-600 hover:text-green-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50 sm:hover:bg-transparent"
-                  href="#"
+                  href="#mission"
                 >
-                  Services
+                  À propos
                 </a>
               </li>
               <li>
                 <a
                   className="text-gray-600 hover:text-green-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50 sm:hover:bg-transparent"
-                  href="#"
-                >
-                  About
-                </a>
-              </li>
-              <li>
-                <a
-                  className="text-gray-600 hover:text-green-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50 sm:hover:bg-transparent"
-                  href="#"
+                  href="#contact"
                 >
                   Contact
                 </a>
@@ -71,7 +72,7 @@ const Navabar = () => {
                   className="inline-block rounded-full border-2 border-green-600 px-6 py-1.5 font-medium text-green-600 hover:bg-green-600 hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                   href="/login"
                 >
-                  Login
+                  Connexion
                 </a>
               </li>
             </ul>

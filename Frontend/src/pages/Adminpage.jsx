@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/SideBar";
 import UsersTab from "../components/UsersTab";
+import AdminStats from "../components/AdminStats";
+import CollectesList from "../components/CollectesList";
 import { useNavigate } from "react-router-dom";
 
 const adminTabs = [
@@ -15,6 +17,8 @@ const AdminPage = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [activeTab, setActiveTab] = useState("Vue d'ensemble");
+  const [collectes, setCollectes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchUsers = async () => {
     const token = localStorage.getItem("token");
@@ -35,8 +39,52 @@ const AdminPage = () => {
     }
   };
 
+  const fetchCollectes = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch("http://localhost:5000/admin/collectes", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.status === 403 || res.status === 401) {
+        navigate("/login");
+        return;
+      }
+      const data = await res.json();
+      setCollectes(data);
+      setLoading(false);
+    } catch (err) {
+      console.error("Erreur:", err);
+      setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (id, newStatus) => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`http://localhost:5000/admin/collectes/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ statut: newStatus }),
+      });
+      if (res.ok) {
+        fetchCollectes();
+      } else {
+        const data = await res.json();
+        console.error("Erreur lors du changement de statut:", data.message);
+      }
+    } catch (err) {
+      console.error("Erreur lors du changement de statut:", err);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchCollectes();
   }, [navigate]);
 
   const getHeaderTitle = () => {
@@ -73,7 +121,7 @@ const AdminPage = () => {
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
                 Dashboard Content
               </h2>
-              <p className="text-gray-600">Your dashboard content goes here.</p>
+              <AdminStats />
             </div>
           )}
           {activeTab === "Utilisateurs" && (
@@ -81,10 +129,11 @@ const AdminPage = () => {
           )}
           {activeTab === "Collectes" && (
             <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Collectes Content
-              </h2>
-              <p className="text-gray-600">Your collectes content goes here.</p>
+              <CollectesList
+                demandes={collectes}
+                loading={loading}
+                onStatusChange={handleStatusChange}
+              />
             </div>
           )}
           {activeTab === "Véhicules" && (

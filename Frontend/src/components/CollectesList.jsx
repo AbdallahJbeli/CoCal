@@ -44,7 +44,7 @@ const CollectesList = ({ demandes, loading, onStatusChange }) => (
                 >
                   {d.statut}
                 </span>
-                {/* Dropdown to change status */}
+
                 <select
                   value={d.statut}
                   onChange={(e) => onStatusChange(d.id, e.target.value)}

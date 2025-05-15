@@ -16,7 +16,6 @@ const options = [
   { value: "lesDeux", label: "Les deux" },
 ];
 
-// Fix default marker icon for leaflet in React
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
@@ -275,7 +274,6 @@ const DemandeCollecteTab = ({ editingDemande, onEditSuccess, mode }) => {
           errors={errors}
         />
 
-        {/* Map for location selection */}
         <div>
           <label className="block font-medium mb-2">
             Localisation de collecte <span className="text-red-500">*</span>

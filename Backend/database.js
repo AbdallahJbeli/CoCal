@@ -35,12 +35,16 @@ const initializeAdmin = async () => {
   }
 };
 
+const initializeDatabase = async () => {
+  await initializeAdmin();
+};
+
 const testDatabaseConnection = async () => {
   try {
     const connection = await pool.getConnection();
     console.log("Connecté à la base de données");
     connection.release();
-    await initializeAdmin();
+    await initializeDatabase();
   } catch (err) {
     console.error("Erreur de connexion à la base de données:", err);
     throw err;

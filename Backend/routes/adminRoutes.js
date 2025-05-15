@@ -198,6 +198,52 @@ router.get(
   }
 );
 
+router.get("/collectes", verifyAdmin, async (req, res) => {
+  try {
+    const [collections] = await pool.query(`
+      SELECT 
+        dc.*,
+        u.nom as client_nom,
+        ch.nom as chauffeur_nom,
+        com.nom as commercial_nom
+      FROM demande_collecte dc
+      JOIN client c ON dc.id_client = c.id
+      JOIN utilisateur u ON c.id_utilisateur = u.id
+      LEFT JOIN utilisateur ch ON dc.id_chauffeur = ch.id
+      LEFT JOIN utilisateur com ON dc.id_commercial = com.id
+      ORDER BY dc.date_creation DESC
+    `);
+    res.status(200).json(collections);
+  } catch (err) {
+    sendError(res, 500, "Erreur lors de la récupération des collectes.");
+  }
+});
+
+router.put("/collectes/:id", verifyAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { statut } = req.body;
+
+  if (!statut) {
+    return sendError(res, 400, "Le statut est requis");
+  }
+
+  try {
+    const [result] = await pool.query(
+      "UPDATE demande_collecte SET statut = ? WHERE id = ?",
+      [statut, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return sendError(res, 404, "Collecte non trouvée");
+    }
+
+    res.status(200).json({ message: "Statut mis à jour avec succès" });
+  } catch (err) {
+    console.error("Erreur lors de la mise à jour du statut:", err);
+    sendError(res, 500, "Erreur lors de la mise à jour du statut");
+  }
+});
+
 router.put("/users/:id", [verifyAdmin, validateUserInput], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -334,20 +380,6 @@ router.delete(
         return sendError(res, 404, "Utilisateur non trouvé.");
       }
 
-      // const [adminCount] = await connection.query(
-      //   "SELECT COUNT(*) AS count FROM utilisateur WHERE typeUtilisateur = 'Admin'"
-      // );
-      // if (
-      //   adminCount[0].count <= 1 &&
-      //   user[0].typeUtilisateur.toLowerCase() === "admin"
-      // ) {
-      //   return sendError(
-      //     res,
-      //     400,
-      //     "Vous ne pouvez pas supprimer le seul administrateur."
-      //   );
-      // }
-
       if (user[0].typeUtilisateur.toLowerCase() === "commercial") {
         const [assignedClients] = await connection.query(
           `SELECT c.id_utilisateur, u.nom 
@@ -367,13 +399,6 @@ router.delete(
           );
         }
       }
-
-      // await connection.query("DELETE FROM chauffeur WHERE id_utilisateur = ?", [
-      //   id,
-      // ]);
-      // await connection.query("DELETE FROM client WHERE id_utilisateur = ?", [
-      //   id,
-      // ]);
 
       const [result] = await connection.query(
         "DELETE FROM utilisateur WHERE id = ?",

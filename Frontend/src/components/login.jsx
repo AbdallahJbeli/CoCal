@@ -239,6 +239,14 @@ const Login = () => {
           {errors.motDePasse && (
             <p className="mt-1 text-sm text-red-600">{errors.motDePasse}</p>
           )}
+          <div className="text-right">
+            <a
+              href="/forgot-password"
+              className="text-sm text-green-600 hover:text-green-700 hover:underline"
+            >
+              Mot de passe oublié ?
+            </a>
+          </div>
         </div>
 
         <button

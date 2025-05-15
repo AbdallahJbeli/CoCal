@@ -9,9 +9,6 @@ const router = express.Router();
 const demandeCollecteValidation = [
   body("type_dechet").notEmpty().withMessage("type_dechet requis"),
   body("date_souhaitee").notEmpty().withMessage("date_souhaitee requise"),
-  // Add validation for latitude/longitude if you want (optional)
-  // body("latitude").optional().isFloat({ min: -90, max: 90 }),
-  // body("longitude").optional().isFloat({ min: -180, max: 180 }),
 ];
 
 const sendError = (res, status, message) => {
@@ -34,8 +31,8 @@ router.post(
       heure_preferee,
       quantite_estimee,
       notes_supplementaires,
-      latitude, // <-- add
-      longitude, // <-- add
+      latitude,
+      longitude,
     } = req.body;
 
     const date_creation = new Date();
@@ -103,8 +100,8 @@ router.put(
       heure_preferee,
       quantite_estimee,
       notes_supplementaires,
-      latitude, // <-- add
-      longitude, // <-- add
+      latitude,
+      longitude,
     } = req.body;
 
     const errors = validationResult(req);
