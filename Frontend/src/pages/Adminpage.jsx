@@ -3,6 +3,7 @@ import Sidebar from "../components/SideBar";
 import UsersTab from "../components/UsersTab";
 import AdminStats from "../components/AdminStats";
 import CollectesList from "../components/CollectesList";
+import VehiculesTab from "../components/VehiculesTab";
 import { useNavigate } from "react-router-dom";
 
 const adminTabs = [
@@ -136,14 +137,7 @@ const AdminPage = () => {
               />
             </div>
           )}
-          {activeTab === "Véhicules" && (
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Véhicules Content
-              </h2>
-              <p className="text-gray-600">Your véhicules content goes here.</p>
-            </div>
-          )}
+          {activeTab === "Véhicules" && <VehiculesTab />}
           {activeTab === "Analytics" && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">

@@ -9,6 +9,9 @@ import {
   Loader,
   Eye,
   EyeOff,
+  Facebook,
+  Instagram,
+  Github,
 } from "lucide-react";
 
 const Login = () => {
@@ -21,6 +24,25 @@ const Login = () => {
   const [serverError, setServerError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  const redirectBasedOnRole = (role) => {
+    switch (role.toLowerCase()) {
+      case "admin":
+        navigate("/admin-space");
+        break;
+      case "client":
+        navigate("/client-space");
+        break;
+      case "commercial":
+        navigate("/commercial-space");
+        break;
+      case "chauffeur":
+        navigate("/chauffeur-space");
+        break;
+      default:
+        navigate("/");
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -38,6 +60,7 @@ const Login = () => {
         localStorage.removeItem("token");
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const validateForm = () => {
@@ -66,25 +89,6 @@ const Login = () => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const redirectBasedOnRole = (role) => {
-    switch (role.toLowerCase()) {
-      case "admin":
-        navigate("/admin-space");
-        break;
-      case "client":
-        navigate("/client-space");
-        break;
-      case "commercial":
-        navigate("/commercial-space");
-        break;
-      case "chauffeur":
-        navigate("/chauffeur-space");
-        break;
-      default:
-        navigate("/");
-    }
   };
 
   const handleChange = (e) => {
@@ -159,114 +163,138 @@ const Login = () => {
   }, []);
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-green-50 to-gray-100">
-      <form
-        onSubmit={handleLogin}
-        className="bg-white p-6 sm:p-8 rounded-xl shadow-lg w-full max-w-md mx-4 transition-all duration-300 hover:shadow-xl"
-      >
-        <h2 className="text-3xl sm:text-4xl font-extrabold mb-8 text-center bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-          Connexion
-        </h2>
-
-        {serverError && (
-          <div className="mb-6 p-3 text-sm rounded-lg bg-red-50 text-red-700 border border-red-200 flex items-center justify-center">
-            <AlertCircle className="h-5 w-5 mr-2" />
-            {serverError}
-          </div>
-        )}
-
-        <div className="mb-5">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Email
-          </label>
-          <div className="relative">
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              disabled={isSubmitting}
-              className={`w-full px-4 py-3 border rounded-lg transition-all placeholder-gray-400 ${
-                errors.email
-                  ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                  : "border-gray-300 focus:ring-green-500 focus:border-green-500"
-              }`}
-              placeholder="exemple@email.com"
-            />
-            <Mail className="h-5 w-5 absolute right-3 top-3.5 text-gray-400" />
-          </div>
-          {errors.email && (
-            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-          )}
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="flex w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden">
+        {/* Left: Image */}
+        <div className="hidden md:block md:w-[56%] bg-green-100">
+          <img
+            src={"/src/assets/images/Cocal.png"}
+            alt="Green leaves"
+            className="object-cover w-full h-full"
+          />
         </div>
+        {/* Right: Login Form */}
+        <div className="w-full md:w-[44%] flex flex-col justify-center p-8 sm:p-12">
+          {/* Logo and Brand */}
+          <div className="flex items-center mb-6">
+            <span className="bg-green-600 rounded-full w-4 h-4 mr-2 inline-block"></span>
+            <span className="font-bold text-lg text-gray-800">CoCal</span>
+          </div>
+          {/* Welcome Text */}
+          <h2 className="text-3xl font-extrabold mb-2 text-gray-900">
+            Hello,
+            <br />
+            Welcome Back to CoCal!
+          </h2>
+          <p className="mb-6 text-gray-500">Login to manage your account.</p>
 
-        <div className="mb-7">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Mot de passe
-          </label>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              name="motDePasse"
-              value={formData.motDePasse}
-              onChange={handleChange}
-              disabled={isSubmitting}
-              className={`w-full px-4 py-3 border rounded-lg transition-all placeholder-gray-400 ${
-                errors.motDePasse
-                  ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                  : "border-gray-300 focus:ring-green-500 focus:border-green-500"
-              }`}
-              placeholder="••••••••"
-            />
+          {serverError && (
+            <div className="mb-4 p-3 text-sm rounded-lg bg-red-50 text-red-700 border border-red-200 flex items-center justify-center">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              {serverError}
+            </div>
+          )}
+
+          <form onSubmit={handleLogin}>
+            {/* Email */}
+            <div className="mb-4 relative flex flex-col">
+              <div className="relative">
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  className={`w-full px-4 py-3 border rounded-lg transition-all placeholder-gray-400 bg-gray-50 focus:bg-white ${
+                    errors.email
+                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:ring-green-500 focus:border-green-500"
+                  } pr-12`}
+                  placeholder="Email"
+                  autoComplete="username"
+                />
+                <Mail className="h-5 w-5 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+              <div className="min-h-[20px]">
+                {errors.email && (
+                  <p className="mt-1 text-xs text-red-600 font-medium pl-1">
+                    {errors.email}
+                  </p>
+                )}
+              </div>
+            </div>
+            {/* Password */}
+            <div className="mb-4 relative flex flex-col">
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="motDePasse"
+                  value={formData.motDePasse}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  className={`w-full px-4 py-3 border rounded-lg transition-all placeholder-gray-400 bg-gray-50 focus:bg-white ${
+                    errors.motDePasse
+                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:ring-green-500 focus:border-green-500"
+                  } pr-12`}
+                  placeholder="Password"
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  tabIndex={-1}
+                  aria-label={
+                    showPassword
+                      ? "Masquer le mot de passe"
+                      : "Afficher le mot de passe"
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+              <div className="min-h-[20px]">
+                {errors.motDePasse && (
+                  <p className="mt-1 text-xs text-red-600 font-medium pl-1">
+                    {errors.motDePasse}
+                  </p>
+                )}
+              </div>
+            </div>
+            {/* Login Button */}
             <button
-              type="button"
-              onClick={togglePasswordVisibility}
-              className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 focus:outline-none"
-              tabIndex={-1}
-              aria-label={
-                showPassword
-                  ? "Masquer le mot de passe"
-                  : "Afficher le mot de passe"
-              }
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-3 px-4 inline-flex justify-center items-center gap-2 rounded-lg border border-transparent font-semibold bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all transform hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed mb-4"
             >
-              {showPassword ? (
-                <EyeOff className="h-5 w-5" />
+              {isSubmitting ? (
+                <>
+                  <Loader className="h-5 w-5 animate-spin" />
+                  Logging in...
+                </>
               ) : (
-                <Eye className="h-5 w-5" />
+                <>
+                  Login
+                  <ArrowRight className="h-5 w-5" />
+                </>
               )}
             </button>
-          </div>
-          {errors.motDePasse && (
-            <p className="mt-1 text-sm text-red-600">{errors.motDePasse}</p>
-          )}
-          <div className="text-right">
-            <a
-              href="/forgot-password"
-              className="text-sm text-green-600 hover:text-green-700 hover:underline"
-            >
-              Mot de passe oublié ?
-            </a>
-          </div>
+            <div className="flex justify-center mb-6">
+              <a
+                href="/forgot-password"
+                className="text-sm text-green-600 hover:text-green-700 hover:underline"
+              >
+                Forgot your password?
+              </a>
+            </div>
+          </form>
         </div>
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full py-3 px-4 inline-flex justify-center items-center gap-2 rounded-lg border border-transparent font-semibold bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all transform hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader className="h-5 w-5 animate-spin" />
-              Connexion en cours...
-            </>
-          ) : (
-            <>
-              Se connecter
-              <ArrowRight className="h-5 w-5" />
-            </>
-          )}
-        </button>
-      </form>
+      </div>
     </div>
   );
 };

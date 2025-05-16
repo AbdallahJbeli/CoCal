@@ -33,7 +33,7 @@ const checkUserExists = async (email, userId = null) => {
 
 const adminExists = async (excludeUserId = null) => {
   const [admins] = await pool.query(
-    "SELECT id FROM utilisateur WHERE typeUtilisateur = 'Admin' AND id != COALESCE(?, -1)",
+    "SELECT id FROM utilisateur WHERE typeUtilisateur = 'Admin' AND id != COALESCE(?, -1)", // id !=?
     [excludeUserId]
   );
   return admins.length > 0;
@@ -85,7 +85,7 @@ const sendError = (res, status, message) => {
 
 router.post(
   "/create-user",
-  [verifyAdmin, validateUserInput],
+  [verifyAdmin, ...validateUserInput],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -244,117 +244,121 @@ router.put("/collectes/:id", verifyAdmin, async (req, res) => {
   }
 });
 
-router.put("/users/:id", [verifyAdmin, validateUserInput], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const { id } = req.params;
-  const { nom, email, motDePasse, typeUtilisateur, ...roleData } = req.body;
-  const connection = await pool.getConnection();
-
-  try {
-    await connection.beginTransaction();
-
-    const [existingUser] = await connection.query(
-      "SELECT * FROM utilisateur WHERE id = ?",
-      [id]
-    );
-    if (!existingUser.length) {
-      return sendError(res, 404, "Utilisateur non trouvé.");
+router.put(
+  "/users/:id",
+  [verifyAdmin, ...validateUserInput],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
 
-    if (email && (await checkUserExists(email, id))) {
-      return sendError(
-        res,
-        400,
-        "Cet email est déjà utilisé par un autre utilisateur."
-      );
-    }
+    const { id } = req.params;
+    const { nom, email, motDePasse, typeUtilisateur, ...roleData } = req.body;
+    const connection = await pool.getConnection();
 
-    if (
-      existingUser[0].typeUtilisateur.toLowerCase() === "admin" &&
-      req.body.typeUtilisateur &&
-      req.body.typeUtilisateur.toLowerCase() !== "admin"
-    ) {
-      return sendError(
-        res,
-        400,
-        "Impossible de modifier le type d'utilisateur administrateur"
-      );
-    }
+    try {
+      await connection.beginTransaction();
 
-    if (typeUtilisateur === "Admin" && (await adminExists(id))) {
-      return sendError(res, 400, "Un autre administrateur existe déjà.");
-    }
-
-    if (
-      existingUser[0].typeUtilisateur.toLowerCase() === "commercial" &&
-      typeUtilisateur &&
-      typeUtilisateur.toLowerCase() !== "commercial"
-    ) {
-      const [assignedClients] = await connection.query(
-        `SELECT c.id_utilisateur, u.nom 
-         FROM client c
-         JOIN utilisateur u ON c.id_utilisateur = u.id
-         WHERE c.id_commercial = ?`,
+      const [existingUser] = await connection.query(
+        "SELECT * FROM utilisateur WHERE id = ?",
         [id]
       );
-      if (assignedClients.length > 0) {
-        const clientList = assignedClients
-          .map((c) => `${c.nom || "Client"} (ID: ${c.id_utilisateur})`)
-          .join(", ");
+      if (!existingUser.length) {
+        return sendError(res, 404, "Utilisateur non trouvé.");
+      }
+
+      if (email && (await checkUserExists(email, id))) {
         return sendError(
           res,
           400,
-          `Impossible de changer le rôle : ce commercial est encore assigné aux clients suivants : ${clientList}. Veuillez réaffecter les clients avant de changer le rôle.`
+          "Cet email est déjà utilisé par un autre utilisateur."
         );
       }
-    }
 
-    const updateFields = [];
-    const values = [];
+      if (
+        existingUser[0].typeUtilisateur.toLowerCase() === "admin" &&
+        req.body.typeUtilisateur &&
+        req.body.typeUtilisateur.toLowerCase() !== "admin"
+      ) {
+        return sendError(
+          res,
+          400,
+          "Impossible de modifier le type d'utilisateur administrateur"
+        );
+      }
 
-    if (nom) {
-      updateFields.push("nom = ?");
-      values.push(nom);
-    }
-    if (email) {
-      updateFields.push("email = ?");
-      values.push(email);
-    }
-    if (motDePasse) {
-      updateFields.push("motDePasse = ?");
-      values.push(await bcrypt.hash(motDePasse, 10));
-    }
-    if (typeUtilisateur) {
-      updateFields.push("typeUtilisateur = ?");
-      values.push(typeUtilisateur);
-    }
+      if (typeUtilisateur === "Admin" && (await adminExists(id))) {
+        return sendError(res, 400, "Un autre administrateur existe déjà.");
+      }
 
-    if (updateFields.length > 0) {
-      values.push(id);
-      await connection.query(
-        `UPDATE utilisateur SET ${updateFields.join(", ")} WHERE id = ?`,
-        values
-      );
-    }
+      if (
+        existingUser[0].typeUtilisateur.toLowerCase() === "commercial" &&
+        typeUtilisateur &&
+        typeUtilisateur.toLowerCase() !== "commercial"
+      ) {
+        const [assignedClients] = await connection.query(
+          `SELECT c.id_utilisateur, u.nom 
+         FROM client c
+         JOIN utilisateur u ON c.id_utilisateur = u.id
+         WHERE c.id_commercial = ?`,
+          [id]
+        );
+        if (assignedClients.length > 0) {
+          const clientList = assignedClients
+            .map((c) => `${c.nom || "Client"} (ID: ${c.id_utilisateur})`)
+            .join(", ");
+          return sendError(
+            res,
+            400,
+            `Impossible de changer le rôle : ce commercial est encore assigné aux clients suivants : ${clientList}. Veuillez réaffecter les clients avant de changer le rôle.`
+          );
+        }
+      }
 
-    if (typeUtilisateur) {
-      await handleRoleInsertion(connection, id, typeUtilisateur, roleData);
-    }
+      const updateFields = [];
+      const values = [];
 
-    await connection.commit();
-    res.status(200).json({ message: "Utilisateur modifié avec succès." });
-  } catch (err) {
-    await connection.rollback();
-    // console.error("Erreur modification utilisateur:", err);
-    sendError(res, 500, "Erreur lors de la modification de l'utilisateur.");
-  } finally {
-    connection.release();
+      if (nom) {
+        updateFields.push("nom = ?");
+        values.push(nom);
+      }
+      if (email) {
+        updateFields.push("email = ?");
+        values.push(email);
+      }
+      if (motDePasse) {
+        updateFields.push("motDePasse = ?");
+        values.push(await bcrypt.hash(motDePasse, 10));
+      }
+      if (typeUtilisateur) {
+        updateFields.push("typeUtilisateur = ?");
+        values.push(typeUtilisateur);
+      }
+
+      if (updateFields.length > 0) {
+        values.push(id);
+        await connection.query(
+          `UPDATE utilisateur SET ${updateFields.join(", ")} WHERE id = ?`,
+          values
+        );
+      }
+
+      if (typeUtilisateur) {
+        await handleRoleInsertion(connection, id, typeUtilisateur, roleData);
+      }
+
+      await connection.commit();
+      res.status(200).json({ message: "Utilisateur modifié avec succès." });
+    } catch (err) {
+      await connection.rollback();
+      // console.error("Erreur modification utilisateur:", err);
+      sendError(res, 500, "Erreur lors de la modification de l'utilisateur.");
+    } finally {
+      connection.release();
+    }
   }
-});
+);
 
 router.delete(
   "/users/:id",

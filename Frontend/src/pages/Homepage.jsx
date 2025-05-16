@@ -19,18 +19,27 @@ export const Homepage = () => {
       <Navabar />
 
       <section className="relative bg-white overflow-hidden pt-8 pb-8">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-8">
+          {/* Hero Image */}
+          <div className="w-full md:w-1/2 flex justify-center mb-8 md:mb-0">
+            <img
+              src={"/src/assets/images/Cocal.png"}
+              alt="CoCal Hero"
+              className="rounded-xl shadow-lg object-cover w-full max-w-md"
+            />
+          </div>
+          {/* Hero Text */}
+          <div className="w-full md:w-1/2 text-center md:text-left">
             <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
               <span className="block">Gestion intelligente</span>
               <span className="block text-green-600">des déchets café</span>
             </h1>
-            <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
+            <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto md:mx-0">
               Optimisez la collecte et le recyclage des déchets de café avec
               notre plateforme complète. Simplifiez la gestion des collectes,
               suivez les performances et contribuez à un avenir plus vert.
             </p>
-            <div className="mt-6 flex flex-col sm:flex-row justify-center gap-4">
+            <div className="mt-6 flex flex-col sm:flex-row justify-center md:justify-start gap-4">
               <a
                 href="/login"
                 className="inline-block px-8 py-3 rounded-md text-white bg-green-600 hover:bg-green-700 font-medium"
@@ -144,9 +153,11 @@ export const Homepage = () => {
             </a>
           </div>
           <div className="flex justify-center items-center">
-            <div className="w-80 h-56 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-2xl">
-              [Image / Slider]
-            </div>
+            <img
+              src={"/src/assets/images/Cocal.png"}
+              alt="CoCal Mission"
+              className="w-80 h-56 object-cover rounded-lg shadow"
+            />
           </div>
         </div>
       </section>
@@ -294,10 +305,20 @@ export const Homepage = () => {
             <div>Politique de confidentialité</div>
             <div>Conditions d'utilisation</div>
             <div className="flex gap-4 mt-4">
-              <a href="https://www.facebook.com/profile.php?id=100094844006772" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-green-600">
+              <a
+                href="https://www.facebook.com/profile.php?id=100094844006772"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-green-600"
+              >
                 <Facebook className="h-5 w-5 text-blue-600" />
               </a>
-              <a href="https://www.run-it.tn/index.html" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-green-600">
+              <a
+                href="https://www.run-it.tn/index.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-green-600"
+              >
                 <Globe className="h-5 w-5" />
               </a>
             </div>
