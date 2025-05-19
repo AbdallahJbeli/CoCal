@@ -425,4 +425,35 @@ router.delete(
   }
 );
 
+// In routes/admin.js or adminRoutes.js
+
+router.put("/demandes/:id/affectation", verifyAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { id_chauffeur, id_vehicule } = req.body;
+  try {
+    // Admin has full rights, no need to check commercial ID
+    const [result] = await pool.query(
+      `UPDATE demande_collecte SET id_chauffeur = ? WHERE id = ?`,
+      [id_chauffeur, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Demande non trouvée." });
+    }
+
+    await pool.query(`UPDATE chauffeur SET id_vehicule = ? WHERE id = ?`, [
+      id_vehicule,
+      id_chauffeur,
+    ]);
+
+    await pool.query(`UPDATE vehicule SET etat = 'en_mission' WHERE id = ?`, [
+      id_vehicule,
+    ]);
+
+    res.json({ message: "Affectation réussie (admin)" });
+  } catch (err) {
+    res.status(500).json({ message: "Erreur serveur", error: err.message });
+  }
+});
+
 export default router;

@@ -1,7 +1,13 @@
 import React, { useState } from "react";
 import Sidebar from "../components/SideBar";
+import ChauffeurCollectesList from "../components/ChauffeurCollectesList";
 
-const chauffeurTabs = ["Vue d'ensemble", "Planning", "Historique", "Messages"];
+const chauffeurTabs = [
+  "Vue d'ensemble",
+  "Collectes assignées",
+  "Historique",
+  "Messages",
+];
 
 const ChauffeurPage = () => {
   const [activeTab, setActiveTab] = useState("Vue d'ensemble");
@@ -10,8 +16,8 @@ const ChauffeurPage = () => {
     switch (activeTab) {
       case "Vue d'ensemble":
         return "Tableau de bord";
-      case "Planning":
-        return "Mon planning";
+      case "Collectes assignées":
+        return "Collectes assignées";
       case "Historique":
         return "Historique des collectes";
       case "Messages":
@@ -44,14 +50,12 @@ const ChauffeurPage = () => {
               </p>
             </div>
           )}
-          {activeTab === "Planning" && (
+          {activeTab === "Collectes assignées" && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
                 Mon Planning
               </h2>
-              <p className="text-gray-600">
-                Vous pourrez voir ici vos collectes planifiées.
-              </p>
+              <ChauffeurCollectesList />
             </div>
           )}
           {activeTab === "Historique" && (

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "../components/SideBar";
 import CollectesList from "../components/CollectesList";
 import ClientsList from "../components/ClientsList";
+import CommercialDashboard from "../components/CommercialDashboard";
+import ChauffeursList from "../components/ChauffeursList";
 
 const commercialTabs = [
   "Vue d'ensemble",
@@ -17,6 +19,7 @@ const CommercialPage = () => {
   const [activeTab, setActiveTab] = useState("Vue d'ensemble");
   const [demandes, setDemandes] = useState([]);
   const [clients, setClients] = useState([]);
+  const [chauffeurs, setChauffeurs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedCollectes, setSelectedCollectes] = useState([]);
   const [showCollectesModal, setShowCollectesModal] = useState(false);
@@ -96,6 +99,35 @@ const CommercialPage = () => {
     }
   }, [activeTab]);
 
+  useEffect(() => {
+    if (activeTab === "Chauffeurs") {
+      const fetchChauffeurs = async () => {
+        setLoading(true);
+        try {
+          const token = localStorage.getItem("token");
+          const res = await fetch(
+            "http://localhost:5000/commercial/chauffeurs",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            setChauffeurs(data);
+          } else {
+            setChauffeurs([]);
+          }
+        } catch {
+          setChauffeurs([]);
+        }
+        setLoading(false);
+      };
+      fetchChauffeurs();
+    }
+  }, [activeTab]);
+
   const fetchCollectesForClient = async (clientId) => {
     const token = localStorage.getItem("token");
     const res = await fetch(
@@ -146,10 +178,7 @@ const CommercialPage = () => {
         <div className="flex-1 p-6 mt-20 overflow-y-auto bg-gray-50">
           {activeTab === "Vue d'ensemble" && (
             <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Dashboard Content
-              </h2>
-              <p className="text-gray-600">Your dashboard content goes here.</p>
+              <CommercialDashboard />
             </div>
           )}
           {activeTab === "Collectes" && (
@@ -171,14 +200,7 @@ const CommercialPage = () => {
             />
           )}
           {activeTab === "Chauffeurs" && (
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Chauffeurs Content
-              </h2>
-              <p className="text-gray-600">
-                Your Chauffeurs content goes here.
-              </p>
-            </div>
+            <ChauffeursList chauffeurs={chauffeurs} loading={loading} />
           )}
           {activeTab === "Carte" && (
             <div>

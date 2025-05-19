@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  Users,
-  Briefcase,
   User,
-  Truck,
   Package,
   Clock,
   CheckCircle,
@@ -12,12 +9,9 @@ import {
   Eye,
 } from "lucide-react";
 
-const AdminStats = () => {
+const CommercialDashboard = () => {
   const [stats, setStats] = useState({
-    totalUsers: 0,
-    commercials: 0,
     clients: 0,
-    chauffeurs: 0,
     totalCollections: 0,
     pendingCollections: 0,
     activeCollections: 0,
@@ -35,38 +29,32 @@ const AdminStats = () => {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem("token");
-
-        const usersResponse = await fetch("http://localhost:5000/admin/users", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!usersResponse.ok) {
-          throw new Error("Failed to fetch user statistics");
-        }
-
-        const usersData = await usersResponse.json();
-
-        const userCounts = usersData.reduce((acc, user) => {
-          const type = user.typeUtilisateur.toLowerCase();
-          acc[type] = (acc[type] || 0) + 1;
-          return acc;
-        }, {});
-
-        const collectionsResponse = await fetch(
-          "http://localhost:5000/admin/collectes",
+        // Fetch clients for this commercial
+        const clientsResponse = await fetch(
+          "http://localhost:5000/commercial/clients",
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
         );
-
-        if (!collectionsResponse.ok) {
-          throw new Error("Failed to fetch collection statistics");
+        if (!clientsResponse.ok) {
+          throw new Error("Failed to fetch clients");
         }
+        const clientsData = await clientsResponse.json();
 
+        // Fetch demandes (collections) for this commercial
+        const collectionsResponse = await fetch(
+          "http://localhost:5000/commercial/demandes",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (!collectionsResponse.ok) {
+          throw new Error("Failed to fetch demandes");
+        }
         const collectionsData = await collectionsResponse.json();
         setCollections(collectionsData);
 
@@ -77,10 +65,7 @@ const AdminStats = () => {
         }, {});
 
         setStats({
-          totalUsers: usersData.length,
-          commercials: userCounts.commercial || 0,
-          clients: userCounts.client || 0,
-          chauffeurs: userCounts.chauffeur || 0,
+          clients: clientsData.length,
           totalCollections: collectionsData.length,
           pendingCollections: collectionCounts["en_attente"] || 0,
           activeCollections: collectionCounts["en_cours"] || 0,
@@ -90,7 +75,6 @@ const AdminStats = () => {
           error: null,
         });
       } catch (error) {
-        console.error("Error fetching statistics:", error);
         setStats((prev) => ({
           ...prev,
           loading: false,
@@ -98,7 +82,6 @@ const AdminStats = () => {
         }));
       }
     };
-
     fetchStats();
   }, []);
 
@@ -145,32 +128,11 @@ const AdminStats = () => {
 
   const userStatCards = [
     {
-      title: "Total Utilisateurs",
-      value: stats.totalUsers,
-      icon: <Users className="h-6 w-6 text-blue-600" />,
-      bgColor: "bg-blue-50",
-      textColor: "text-blue-600",
-    },
-    {
-      title: "Commerciaux",
-      value: stats.commercials,
-      icon: <Briefcase className="h-6 w-6 text-purple-600" />,
-      bgColor: "bg-purple-50",
-      textColor: "text-purple-600",
-    },
-    {
       title: "Clients",
       value: stats.clients,
       icon: <User className="h-6 w-6 text-green-600" />,
       bgColor: "bg-green-50",
       textColor: "text-green-600",
-    },
-    {
-      title: "Chauffeurs",
-      value: stats.chauffeurs,
-      icon: <Truck className="h-6 w-6 text-orange-600" />,
-      bgColor: "bg-orange-50",
-      textColor: "text-orange-600",
     },
   ];
 
@@ -226,7 +188,7 @@ const AdminStats = () => {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Statistiques Utilisateurs
+          Statistiques Clients
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {userStatCards.map((card, index) => (
@@ -326,9 +288,11 @@ const AdminStats = () => {
                           Date souhaitée
                         </p>
                         <p className="text-base text-gray-900">
-                          {new Date(
-                            collection.date_souhaitee
-                          ).toLocaleDateString()}
+                          {collection.date_souhaitee
+                            ? new Date(
+                                collection.date_souhaitee
+                              ).toLocaleDateString()
+                            : "-"}
                         </p>
                       </div>
                       <div>
@@ -389,4 +353,4 @@ const AdminStats = () => {
   );
 };
 
-export default AdminStats;
+export default CommercialDashboard;

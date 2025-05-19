@@ -1,6 +1,9 @@
 import express from "express";
 import pool from "../database.js";
-import { verifyCommercial } from "../middlewares/authMiddleware.js";
+import {
+  verifyAdminOrCommercial,
+  verifyCommercial,
+} from "../middlewares/authMiddleware.js";
 import fetchCommercial from "../middlewares/fetchCommercial.js";
 
 const router = express.Router();
@@ -28,26 +31,32 @@ router.get("/clients", verifyCommercial, fetchCommercial, async (req, res) => {
   }
 });
 
-router.get("/demandes", verifyCommercial, fetchCommercial, async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      `SELECT dc.* 
+router.get(
+  "/demandes",
+  verifyAdminOrCommercial,
+  fetchCommercial,
+  async (req, res) => {
+    try {
+      const [rows] = await pool.query(
+        `SELECT dc.*, u.nom AS client_nom
        FROM demande_collecte dc
        JOIN client c ON dc.id_client = c.id
+       JOIN utilisateur u ON c.id_utilisateur = u.id
        WHERE c.id_commercial = ?
        ORDER BY dc.date_creation DESC`,
-      [req.commercial.id]
-    );
-    res.json(rows);
-  } catch (err) {
-    console.error("Erreur serveur:", err);
-    res.status(500).json({ message: "Erreur serveur" });
+        [req.commercial.id]
+      );
+      res.json(rows);
+    } catch (err) {
+      console.error("Erreur serveur:", err);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
   }
-});
+);
 
 router.get(
   "/clients/:clientId/collectes",
-  verifyCommercial,
+  verifyAdminOrCommercial,
   fetchCommercial,
   async (req, res) => {
     try {
@@ -92,6 +101,112 @@ router.put(
           .json({ message: "Demande non trouvée ou non autorisée" });
       }
       res.json({ message: "Statut mis à jour" });
+    } catch (err) {
+      res.status(500).json({ message: "Erreur serveur", error: err.message });
+    }
+  }
+);
+
+router.get(
+  "/chauffeurs",
+  verifyAdminOrCommercial,
+  fetchCommercial,
+  async (req, res) => {
+    try {
+      // Get all chauffeurs for this commercial
+      const [chauffeurs] = await pool.query(
+        `SELECT ch.id, u.nom, v.id AS vehicule_id, v.marque, v.modele, v.matricule
+         FROM chauffeur ch
+         JOIN utilisateur u ON ch.id_utilisateur = u.id
+         LEFT JOIN vehicule v ON ch.id_vehicule = v.id
+         WHERE ch.disponible = 1`
+      );
+
+      // For each chauffeur, get their assigned collectes
+      for (const chauffeur of chauffeurs) {
+        const [collectes] = await pool.query(
+          `SELECT id, type_dechet, date_souhaitee, heure_preferee, statut
+           FROM demande_collecte
+           WHERE id_chauffeur = ?`,
+          [chauffeur.id]
+        );
+        chauffeur.collectes = collectes;
+      }
+
+      res.json(chauffeurs);
+    } catch (err) {
+      console.error("Erreur lors de la récupération des chauffeurs:", err);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  }
+);
+
+// Route to get all available vehicles
+router.get(
+  "/vehicules-disponibles",
+  verifyAdminOrCommercial,
+  fetchCommercial,
+  async (req, res) => {
+    try {
+      const [vehicules] = await pool.query(
+        `SELECT id, matricule, marque, modele, capacite_kg, type_vehicule
+         FROM vehicule
+         WHERE etat = 'disponible'`
+      );
+      res.json(vehicules);
+    } catch (err) {
+      res.status(500).json({ message: "Erreur serveur", error: err.message });
+    }
+  }
+);
+
+router.put(
+  "/demandes/:id/affectation",
+  verifyAdminOrCommercial,
+  fetchCommercial, // safe to keep this — just won't set `req.commercial` for admin
+  async (req, res) => {
+    const { id } = req.params;
+    const { id_chauffeur, id_vehicule } = req.body;
+
+    const isAdmin = req.user.typeUtilisateur === "admin";
+
+    try {
+      let result;
+      if (isAdmin) {
+        // Admins can affect any demande
+        [result] = await pool.query(
+          `UPDATE demande_collecte
+           SET id_chauffeur = ?
+           WHERE id = ?`,
+          [id_chauffeur, id]
+        );
+      } else {
+        // Commercials can only affect their own demandes
+        [result] = await pool.query(
+          `UPDATE demande_collecte dc
+           JOIN client c ON dc.id_client = c.id
+           SET dc.id_chauffeur = ?
+           WHERE dc.id = ? AND c.id_commercial = ?`,
+          [id_chauffeur, id, req.commercial.id]
+        );
+      }
+
+      if (result.affectedRows === 0) {
+        return res
+          .status(404)
+          .json({ message: "Demande non trouvée ou non autorisée" });
+      }
+
+      await pool.query(`UPDATE chauffeur SET id_vehicule = ? WHERE id = ?`, [
+        id_vehicule,
+        id_chauffeur,
+      ]);
+
+      await pool.query(`UPDATE vehicule SET etat = 'en_mission' WHERE id = ?`, [
+        id_vehicule,
+      ]);
+
+      res.json({ message: "Affectation réussie" });
     } catch (err) {
       res.status(500).json({ message: "Erreur serveur", error: err.message });
     }

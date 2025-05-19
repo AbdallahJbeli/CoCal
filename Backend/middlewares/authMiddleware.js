@@ -54,3 +54,4 @@ export const verifyAdmin = verifyRole("admin");
 export const verifyClient = verifyRole("client");
 export const verifyCommercial = verifyRole("commercial");
 export const verifyChauffeur = verifyRole("chauffeur");
+export const verifyAdminOrCommercial = verifyRole("admin", "commercial");

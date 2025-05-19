@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/SideBar";
 import UsersTab from "../components/UsersTab";
-import AdminStats from "../components/AdminStats";
 import CollectesList from "../components/CollectesList";
 import VehiculesTab from "../components/VehiculesTab";
 import AnalyticsTab from "../components/AnalyticsTab";
 import { useNavigate } from "react-router-dom";
+import AdminDashboard from "../components/AdminDashboard";
 
 const adminTabs = [
   "Vue d'ensemble",
@@ -120,10 +120,7 @@ const AdminPage = () => {
         <div className="flex-1 p-6 mt-20 overflow-y-auto bg-gray-50">
           {activeTab === "Vue d'ensemble" && (
             <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Dashboard Content
-              </h2>
-              <AdminStats />
+              <AdminDashboard />
             </div>
           )}
           {activeTab === "Utilisateurs" && (
