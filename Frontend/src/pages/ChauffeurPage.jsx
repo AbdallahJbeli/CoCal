@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Sidebar from "../components/SideBar";
 import ChauffeurCollectesList from "../components/ChauffeurCollectesList";
+import ChauffeurDashboard from "../components/ChauffeurDashboard";
 
 const chauffeurTabs = [
   "Vue d'ensemble",
@@ -39,17 +40,7 @@ const ChauffeurPage = () => {
         </div>
 
         <div className="flex-1 p-6 mt-20 overflow-y-auto bg-gray-50">
-          {activeTab === "Vue d'ensemble" && (
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Bienvenue dans votre espace chauffeur
-              </h2>
-              <p className="text-gray-600">
-                Consultez vos tâches à venir, l’historique des collectes, et
-                plus encore.
-              </p>
-            </div>
-          )}
+          {activeTab === "Vue d'ensemble" && <ChauffeurDashboard />}
           {activeTab === "Collectes assignées" && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">

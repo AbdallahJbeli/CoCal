@@ -38,12 +38,22 @@ router.get(
   async (req, res) => {
     try {
       const [rows] = await pool.query(
-        `SELECT dc.*, u.nom AS client_nom
-       FROM demande_collecte dc
-       JOIN client c ON dc.id_client = c.id
-       JOIN utilisateur u ON c.id_utilisateur = u.id
-       WHERE c.id_commercial = ?
-       ORDER BY dc.date_creation DESC`,
+        `SELECT dc.*, 
+          u.nom AS client_nom,
+          ch.id AS chauffeur_id,
+          ch_u.nom AS chauffeur_nom,
+          v.id AS vehicule_id,
+          v.marque AS vehicule_marque,
+          v.modele AS vehicule_modele,
+          v.matricule AS vehicule_matricule
+        FROM demande_collecte dc
+        JOIN client c ON dc.id_client = c.id
+        JOIN utilisateur u ON c.id_utilisateur = u.id
+        LEFT JOIN chauffeur ch ON dc.id_chauffeur = ch.id
+        LEFT JOIN utilisateur ch_u ON ch.id_utilisateur = ch_u.id
+        LEFT JOIN vehicule v ON ch.id_vehicule = v.id
+        WHERE c.id_commercial = ?
+        ORDER BY dc.date_creation DESC`,
         [req.commercial.id]
       );
       res.json(rows);
@@ -212,5 +222,51 @@ router.put(
     }
   }
 );
+
+// Get all problems for a commercial's clients
+router.get("/problemes", verifyCommercial, fetchCommercial, async (req, res) => {
+  try {
+    const [problems] = await pool.query(
+      `SELECT pc.*, dc.id as id_demande, u.nom as chauffeur_nom
+       FROM problemes_collecte pc
+       JOIN demande_collecte dc ON pc.id_demande = dc.id
+       JOIN client cl ON dc.id_client = cl.id
+       JOIN chauffeur ch ON pc.id_chauffeur = ch.id
+       JOIN utilisateur u ON ch.id_utilisateur = u.id
+       WHERE cl.id_commercial = ?
+       ORDER BY pc.date_signalement DESC`,
+      [req.commercial.id]
+    );
+    res.json(problems);
+  } catch (err) {
+    console.error("Erreur lors de la récupération des problèmes:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
+// Update problem status
+router.put("/problemes/:id/status", verifyCommercial, fetchCommercial, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    const [result] = await pool.query(
+      `UPDATE problemes_collecte 
+       SET statut = ?, 
+           date_resolution = ${status === 'resolu' ? 'NOW()' : 'NULL'}
+       WHERE id = ?`,
+      [status, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Problème non trouvé" });
+    }
+
+    res.json({ message: "Statut mis à jour avec succès" });
+  } catch (err) {
+    console.error("Erreur lors de la mise à jour du statut:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
 
 export default router;

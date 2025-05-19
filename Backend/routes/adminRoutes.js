@@ -204,13 +204,20 @@ router.get("/collectes", verifyAdmin, async (req, res) => {
       SELECT 
         dc.*,
         u.nom as client_nom,
-        ch.nom as chauffeur_nom,
+        ch.id as chauffeur_id,
+        ch_u.nom as chauffeur_nom,
+        v.id as vehicule_id,
+        v.marque as vehicule_marque,
+        v.modele as vehicule_modele,
+        v.matricule as vehicule_matricule,
         com.nom as commercial_nom
       FROM demande_collecte dc
       JOIN client c ON dc.id_client = c.id
       JOIN utilisateur u ON c.id_utilisateur = u.id
-      LEFT JOIN utilisateur ch ON dc.id_chauffeur = ch.id
-      LEFT JOIN utilisateur com ON dc.id_commercial = com.id
+      LEFT JOIN chauffeur ch ON dc.id_chauffeur = ch.id
+      LEFT JOIN utilisateur ch_u ON ch.id_utilisateur = ch_u.id
+      LEFT JOIN vehicule v ON ch.id_vehicule = v.id
+      LEFT JOIN utilisateur com ON c.id_commercial = com.id
       ORDER BY dc.date_creation DESC
     `);
     res.status(200).json(collections);
@@ -241,6 +248,42 @@ router.put("/collectes/:id", verifyAdmin, async (req, res) => {
   } catch (err) {
     console.error("Erreur lors de la mise à jour du statut:", err);
     sendError(res, 500, "Erreur lors de la mise à jour du statut");
+  }
+});
+
+router.put("/collectes/:id/affectation", verifyAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { id_chauffeur, id_vehicule } = req.body;
+
+  try {
+    // Update the demande with the chauffeur
+    const [result] = await pool.query(
+      `UPDATE demande_collecte
+       SET id_chauffeur = ?
+       WHERE id = ?`,
+      [id_chauffeur, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Demande non trouvée" });
+    }
+
+    // Update the chauffeur's vehicle
+    await pool.query(
+      `UPDATE chauffeur SET id_vehicule = ? WHERE id = ?`,
+      [id_vehicule, id_chauffeur]
+    );
+
+    // Update the vehicle status
+    await pool.query(
+      `UPDATE vehicule SET etat = 'en_mission' WHERE id = ?`,
+      [id_vehicule]
+    );
+
+    res.json({ message: "Affectation réussie" });
+  } catch (err) {
+    console.error("Erreur lors de l'affectation:", err);
+    res.status(500).json({ message: "Erreur serveur", error: err.message });
   }
 });
 
@@ -425,34 +468,50 @@ router.delete(
   }
 );
 
-// In routes/admin.js or adminRoutes.js
-
-router.put("/demandes/:id/affectation", verifyAdmin, async (req, res) => {
-  const { id } = req.params;
-  const { id_chauffeur, id_vehicule } = req.body;
+// Get all problems
+router.get("/problemes", verifyAdmin, async (req, res) => {
   try {
-    // Admin has full rights, no need to check commercial ID
+    const [problems] = await pool.query(
+      `SELECT pc.*, dc.id as id_demande, 
+              u_ch.nom as chauffeur_nom,
+              u_cl.nom as client_nom
+       FROM problemes_collecte pc
+       JOIN demande_collecte dc ON pc.id_demande = dc.id
+       JOIN client cl ON dc.id_client = cl.id
+       JOIN chauffeur ch ON pc.id_chauffeur = ch.id
+       JOIN utilisateur u_ch ON ch.id_utilisateur = u_ch.id
+       JOIN utilisateur u_cl ON cl.id_utilisateur = u_cl.id
+       ORDER BY pc.date_signalement DESC`
+    );
+    res.json(problems);
+  } catch (err) {
+    console.error("Erreur lors de la récupération des problèmes:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
+// Update problem status
+router.put("/problemes/:id/status", verifyAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
     const [result] = await pool.query(
-      `UPDATE demande_collecte SET id_chauffeur = ? WHERE id = ?`,
-      [id_chauffeur, id]
+      `UPDATE problemes_collecte 
+       SET statut = ?, 
+           date_resolution = ${status === 'resolu' ? 'NOW()' : 'NULL'}
+       WHERE id = ?`,
+      [status, id]
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Demande non trouvée." });
+      return res.status(404).json({ message: "Problème non trouvé" });
     }
 
-    await pool.query(`UPDATE chauffeur SET id_vehicule = ? WHERE id = ?`, [
-      id_vehicule,
-      id_chauffeur,
-    ]);
-
-    await pool.query(`UPDATE vehicule SET etat = 'en_mission' WHERE id = ?`, [
-      id_vehicule,
-    ]);
-
-    res.json({ message: "Affectation réussie (admin)" });
+    res.json({ message: "Statut mis à jour avec succès" });
   } catch (err) {
-    res.status(500).json({ message: "Erreur serveur", error: err.message });
+    console.error("Erreur lors de la mise à jour du statut:", err);
+    res.status(500).json({ message: "Erreur serveur" });
   }
 });
 

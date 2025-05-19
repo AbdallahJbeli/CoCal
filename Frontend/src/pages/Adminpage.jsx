@@ -6,6 +6,8 @@ import VehiculesTab from "../components/VehiculesTab";
 import AnalyticsTab from "../components/AnalyticsTab";
 import { useNavigate } from "react-router-dom";
 import AdminDashboard from "../components/AdminDashboard";
+import AdminMessages from "../components/AdminMessages";
+
 
 const adminTabs = [
   "Vue d'ensemble",
@@ -13,6 +15,7 @@ const adminTabs = [
   "Collectes",
   "Véhicules",
   "Analytics",
+  "Message"
 ];
 
 const AdminPage = () => {
@@ -21,6 +24,8 @@ const AdminPage = () => {
   const [activeTab, setActiveTab] = useState("Vue d'ensemble");
   const [collectes, setCollectes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [chauffeurs, setChauffeurs] = useState([]);
+  const [vehicules, setVehicules] = useState([]);
 
   const fetchUsers = async () => {
     const token = localStorage.getItem("token");
@@ -38,6 +43,40 @@ const AdminPage = () => {
       setUsers(data);
     } catch (err) {
       console.error("Erreur:", err);
+    }
+  };
+
+  const fetchChauffeurs = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch("http://localhost:5000/commercial/chauffeurs", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setChauffeurs(data);
+      }
+    } catch (err) {
+      console.error("Erreur lors de la récupération des chauffeurs:", err);
+    }
+  };
+
+  const fetchVehicules = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch("http://localhost:5000/commercial/vehicules-disponibles", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setVehicules(data);
+      }
+    } catch (err) {
+      console.error("Erreur lors de la récupération des véhicules:", err);
     }
   };
 
@@ -84,9 +123,35 @@ const AdminPage = () => {
     }
   };
 
+  const handleAffectation = async (id, id_chauffeur, id_vehicule) => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`http://localhost:5000/admin/collectes/${id}/affectation`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id_chauffeur, id_vehicule }),
+      });
+      if (res.ok) {
+        fetchCollectes();
+        fetchChauffeurs();
+        fetchVehicules();
+      } else {
+        const data = await res.json();
+        console.error("Erreur lors de l'affectation:", data.message);
+      }
+    } catch (err) {
+      console.error("Erreur lors de l'affectation:", err);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
     fetchCollectes();
+    fetchChauffeurs();
+    fetchVehicules();
   }, [navigate]);
 
   const getHeaderTitle = () => {
@@ -132,11 +197,22 @@ const AdminPage = () => {
                 demandes={collectes}
                 loading={loading}
                 onStatusChange={handleStatusChange}
+                onAffectation={handleAffectation}
+                chauffeurs={chauffeurs}
+                vehicules={vehicules}
               />
             </div>
           )}
           {activeTab === "Véhicules" && <VehiculesTab />}
           {activeTab === "Analytics" && <AnalyticsTab />}
+          {activeTab === "Message" && (
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                Problèmes signalés
+              </h2>
+              <AdminMessages />
+            </div>
+          )}
         </div>
       </div>
     </div>

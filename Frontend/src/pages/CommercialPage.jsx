@@ -4,6 +4,7 @@ import CollectesList from "../components/CollectesList";
 import ClientsList from "../components/ClientsList";
 import CommercialDashboard from "../components/CommercialDashboard";
 import ChauffeursList from "../components/ChauffeursList";
+import CommercialMessages from "../components/CommercialMessages";
 
 const commercialTabs = [
   "Vue d'ensemble",
@@ -12,7 +13,7 @@ const commercialTabs = [
   "Chauffeurs",
   "Carte",
   "Historique",
-  "Messages",
+  "Message",
 ];
 
 const CommercialPage = () => {
@@ -39,8 +40,8 @@ const CommercialPage = () => {
         return "Carte";
       case "Historique":
         return "Historique";
-      case "Messsages":
-        return "Messsages";
+      case "Message":
+        return "Message";
       default:
         return "Admin Dashboard";
     }
@@ -208,6 +209,22 @@ const CommercialPage = () => {
                 Carte Content
               </h2>
               <p className="text-gray-600">Your Carte content goes here.</p>
+            </div>
+          )}
+          {activeTab === "Historique" && (
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              Historique Content
+              </h2>
+              <p className="text-gray-600">Your Historique content goes here.</p>
+            </div>
+          )}
+          {activeTab === "Message" && (
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                Problèmes signalés
+              </h2>
+              <CommercialMessages />
             </div>
           )}
         </div>

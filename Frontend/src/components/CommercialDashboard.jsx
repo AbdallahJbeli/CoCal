@@ -7,6 +7,7 @@ import {
   XCircle,
   Loader2,
   Eye,
+  Truck,
 } from "lucide-react";
 
 const CommercialDashboard = () => {
@@ -17,6 +18,7 @@ const CommercialDashboard = () => {
     activeCollections: 0,
     completedCollections: 0,
     cancelledCollections: 0,
+    chauffeurs: 0,
     loading: true,
     error: null,
   });
@@ -42,6 +44,20 @@ const CommercialDashboard = () => {
           throw new Error("Failed to fetch clients");
         }
         const clientsData = await clientsResponse.json();
+
+        // Fetch chauffeurs for this commercial
+        const chauffeursResponse = await fetch(
+          "http://localhost:5000/commercial/chauffeurs",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (!chauffeursResponse.ok) {
+          throw new Error("Failed to fetch chauffeurs");
+        }
+        const chauffeursData = await chauffeursResponse.json();
 
         // Fetch demandes (collections) for this commercial
         const collectionsResponse = await fetch(
@@ -71,6 +87,7 @@ const CommercialDashboard = () => {
           activeCollections: collectionCounts["en_cours"] || 0,
           completedCollections: collectionCounts["terminee"] || 0,
           cancelledCollections: collectionCounts["annulee"] || 0,
+          chauffeurs: chauffeursData.length,
           loading: false,
           error: null,
         });
@@ -136,6 +153,16 @@ const CommercialDashboard = () => {
     },
   ];
 
+  const chauffeurStatCards = [
+    {
+      title: "Total Chauffeurs",
+      value: stats.chauffeurs,
+      icon: <Truck className="h-6 w-6 text-purple-600" />,
+      bgColor: "bg-purple-50",
+      textColor: "text-purple-600",
+    },
+  ];
+
   const collectionStatCards = [
     {
       title: "Total Demandes",
@@ -192,6 +219,34 @@ const CommercialDashboard = () => {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {userStatCards.map((card, index) => (
+            <div
+              key={index}
+              className="bg-white p-6 rounded-xl shadow-sm border border-gray-100"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    {card.title}
+                  </p>
+                  <p className="text-2xl font-semibold text-gray-900 mt-1">
+                    {card.value}
+                  </p>
+                </div>
+                <div className={`p-3 ${card.bgColor} rounded-lg`}>
+                  {card.icon}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          Statistiques Chauffeurs
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {chauffeurStatCards.map((card, index) => (
             <div
               key={index}
               className="bg-white p-6 rounded-xl shadow-sm border border-gray-100"

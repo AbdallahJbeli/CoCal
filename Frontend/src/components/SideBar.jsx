@@ -25,7 +25,7 @@ const iconMap = {
   Véhicules: <Truck className="h-5 w-5 md:mr-3" />,
   Historique: <Notebook className="h-5 w-5 md:mr-3" />,
   Analytics: <BarChart className="h-5 w-5 md:mr-3" />,
-  Messages: <MessageCircle className="h-5 w-5 md:mr-3" />,
+  Message: <MessageCircle className="h-5 w-5 md:mr-3" />,
 };
 
 const Sidebar = ({ tabs, setActiveTab }) => {

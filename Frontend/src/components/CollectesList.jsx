@@ -7,6 +7,7 @@ const CollectesList = ({ demandes, loading, onStatusChange }) => {
   const [selectedChauffeur, setSelectedChauffeur] = useState({});
   const [selectedVehicule, setSelectedVehicule] = useState({});
   const [fetchError, setFetchError] = useState(null);
+  const [assignedResources, setAssignedResources] = useState({});
 
   const token = localStorage.getItem("token");
 
@@ -54,6 +55,28 @@ const CollectesList = ({ demandes, loading, onStatusChange }) => {
     fetchData();
   }, [token]);
 
+  // Initialize assignedResources when demandes change
+  useEffect(() => {
+    const initialAssignments = {};
+    demandes.forEach(demande => {
+      if (demande.chauffeur_id && demande.vehicule_id) {
+        initialAssignments[demande.id] = {
+          chauffeur: {
+            id: demande.chauffeur_id,
+            nom: demande.chauffeur_nom
+          },
+          vehicule: {
+            id: demande.vehicule_id,
+            marque: demande.vehicule_marque,
+            modele: demande.vehicule_modele,
+            matricule: demande.vehicule_matricule
+          }
+        };
+      }
+    });
+    setAssignedResources(initialAssignments);
+  }, [demandes]);
+
   const handleAffectation = async (demandeId) => {
     const chauffeurId = selectedChauffeur[demandeId];
     const vehiculeId = selectedVehicule[demandeId];
@@ -73,7 +96,21 @@ const CollectesList = ({ demandes, loading, onStatusChange }) => {
     try {
       const res = await fetch(url, { method: "PUT", headers, body });
       if (res.ok) {
-        alert("Affectation réussie !");
+        const assignedChauffeur = chauffeurs.find(ch => String(ch.id) === String(chauffeurId));
+        const assignedVehicule = vehicules.find(v => String(v.id) === String(vehiculeId));
+        
+        if (assignedChauffeur && assignedVehicule) {
+          setAssignedResources(prev => ({
+            ...prev,
+            [demandeId]: {
+              chauffeur: assignedChauffeur,
+              vehicule: assignedVehicule
+            }
+          }));
+          alert("Affectation réussie !");
+        } else {
+          alert("Erreur: Impossible de trouver les ressources assignées.");
+        }
       } else {
         alert("Échec de l'affectation.");
       }
@@ -120,16 +157,18 @@ const CollectesList = ({ demandes, loading, onStatusChange }) => {
                     {d.statut}
                   </span>
 
-                  <select
-                    value={d.statut}
-                    onChange={(e) => onStatusChange(d.id, e.target.value)}
-                    className="ml-2 border-gray-300 text-sm rounded-md px-2 py-1 focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="en_attente">En attente</option>
-                    <option value="en_cours">En cours</option>
-                    <option value="terminee">Terminée</option>
-                    <option value="annulee">Annulée</option>
-                  </select>
+                  {d.statut !== "terminee" && d.statut !== "annulee" && (
+                    <select
+                      value={d.statut}
+                      onChange={(e) => onStatusChange(d.id, e.target.value)}
+                      className="ml-2 border-gray-300 text-sm rounded-md px-2 py-1 focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="en_attente">En attente</option>
+                      <option value="en_cours">En cours</option>
+                      <option value="terminee">Terminée</option>
+                      <option value="annulee">Annulée</option>
+                    </select>
+                  )}
                 </div>
 
                 <p className="flex items-center gap-2">
@@ -172,61 +211,82 @@ const CollectesList = ({ demandes, loading, onStatusChange }) => {
 
               {/* Action Controls */}
               <div className="mt-4 md:mt-0 flex flex-col gap-2 md:w-1/3">
-                <select
-                  className="border-gray-300 rounded-md text-sm px-2 py-1 focus:ring-2 focus:ring-green-500"
-                  value={selectedChauffeur[d.id] || ""}
-                  onChange={(e) =>
-                    setSelectedChauffeur((prev) => ({
-                      ...prev,
-                      [d.id]: e.target.value,
-                    }))
-                  }
-                >
-                  <option value="">Chauffeur...</option>
-                  {Array.isArray(chauffeurs) && chauffeurs.length > 0 ? (
-                    chauffeurs.map((ch) => (
-                      <option key={ch.id} value={ch.id}>
-                        {ch.nom}
-                      </option>
-                    ))
-                  ) : (
-                    <option disabled>Aucun chauffeur disponible</option>
-                  )}
-                </select>
+                {d.statut === "annulee" ? (
+                  <div className="bg-red-50 p-2 rounded">
+                    <p className="text-sm font-medium text-red-800">
+                      Cette collecte a été annulée
+                    </p>
+                  </div>
+                ) : assignedResources[d.id] && assignedResources[d.id].chauffeur && assignedResources[d.id].vehicule ? (
+                  <div className="space-y-2">
+                    <div className="bg-green-50 p-2 rounded">
+                      <p className="text-sm font-medium text-green-800">
+                        Chauffeur assigné: {assignedResources[d.id].chauffeur.nom || 'Non spécifié'}
+                      </p>
+                      <p className="text-sm font-medium text-green-800">
+                        Véhicule: {assignedResources[d.id].vehicule.marque || ''} {assignedResources[d.id].vehicule.modele || ''} ({assignedResources[d.id].vehicule.matricule || 'Non spécifié'})
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <select
+                      className="border-gray-300 rounded-md text-sm px-2 py-1 focus:ring-2 focus:ring-green-500"
+                      value={selectedChauffeur[d.id] || ""}
+                      onChange={(e) =>
+                        setSelectedChauffeur((prev) => ({
+                          ...prev,
+                          [d.id]: e.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">Chauffeur...</option>
+                      {Array.isArray(chauffeurs) && chauffeurs.length > 0 ? (
+                        chauffeurs.map((ch) => (
+                          <option key={ch.id} value={ch.id}>
+                            {ch.nom}
+                          </option>
+                        ))
+                      ) : (
+                        <option disabled>Aucun chauffeur disponible</option>
+                      )}
+                    </select>
 
-                <select
-                  className="border-gray-300 rounded-md text-sm px-2 py-1 focus:ring-2 focus:ring-green-500"
-                  value={selectedVehicule[d.id] || ""}
-                  onChange={(e) =>
-                    setSelectedVehicule((prev) => ({
-                      ...prev,
-                      [d.id]: e.target.value,
-                    }))
-                  }
-                >
-                  <option value="">Véhicule...</option>
-                  {Array.isArray(vehicules) && vehicules.length > 0 ? (
-                    vehicules.map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.marque} {v.modele} ({v.matricule})
-                      </option>
-                    ))
-                  ) : (
-                    <option disabled>Aucun véhicule disponible</option>
-                  )}
-                </select>
+                    <select
+                      className="border-gray-300 rounded-md text-sm px-2 py-1 focus:ring-2 focus:ring-green-500"
+                      value={selectedVehicule[d.id] || ""}
+                      onChange={(e) =>
+                        setSelectedVehicule((prev) => ({
+                          ...prev,
+                          [d.id]: e.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">Véhicule...</option>
+                      {Array.isArray(vehicules) && vehicules.length > 0 ? (
+                        vehicules.map((v) => (
+                          <option key={v.id} value={v.id}>
+                            {v.marque} {v.modele} ({v.matricule})
+                          </option>
+                        ))
+                      ) : (
+                        <option disabled>Aucun véhicule disponible</option>
+                      )}
+                    </select>
 
-                <button
-                  onClick={() => handleAffectation(d.id)}
-                  disabled={!selectedChauffeur[d.id] || !selectedVehicule[d.id]}
-                  className={`w-full px-4 py-1 rounded-md text-white text-sm transition ${
-                    !selectedChauffeur[d.id] || !selectedVehicule[d.id]
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-green-600 hover:bg-green-700"
-                  }`}
-                >
-                  Affecter
-                </button>
+                    <button
+                      onClick={() => handleAffectation(d.id)}
+                      disabled={!selectedChauffeur[d.id] || !selectedVehicule[d.id]}
+                      className={`w-full px-4 py-1 rounded-md text-white text-sm transition ${
+                        !selectedChauffeur[d.id] || !selectedVehicule[d.id]
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-green-600 hover:bg-green-700"
+                      }`}
+                    >
+                      Affecter
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))}
