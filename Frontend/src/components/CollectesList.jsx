@@ -58,19 +58,19 @@ const CollectesList = ({ demandes, loading, onStatusChange }) => {
   // Initialize assignedResources when demandes change
   useEffect(() => {
     const initialAssignments = {};
-    demandes.forEach(demande => {
+    demandes.forEach((demande) => {
       if (demande.chauffeur_id && demande.vehicule_id) {
         initialAssignments[demande.id] = {
           chauffeur: {
             id: demande.chauffeur_id,
-            nom: demande.chauffeur_nom
+            nom: demande.chauffeur_nom,
           },
           vehicule: {
             id: demande.vehicule_id,
             marque: demande.vehicule_marque,
             modele: demande.vehicule_modele,
-            matricule: demande.vehicule_matricule
-          }
+            matricule: demande.vehicule_matricule,
+          },
         };
       }
     });
@@ -96,16 +96,20 @@ const CollectesList = ({ demandes, loading, onStatusChange }) => {
     try {
       const res = await fetch(url, { method: "PUT", headers, body });
       if (res.ok) {
-        const assignedChauffeur = chauffeurs.find(ch => String(ch.id) === String(chauffeurId));
-        const assignedVehicule = vehicules.find(v => String(v.id) === String(vehiculeId));
-        
+        const assignedChauffeur = chauffeurs.find(
+          (ch) => String(ch.id) === String(chauffeurId)
+        );
+        const assignedVehicule = vehicules.find(
+          (v) => String(v.id) === String(vehiculeId)
+        );
+
         if (assignedChauffeur && assignedVehicule) {
-          setAssignedResources(prev => ({
+          setAssignedResources((prev) => ({
             ...prev,
             [demandeId]: {
               chauffeur: assignedChauffeur,
-              vehicule: assignedVehicule
-            }
+              vehicule: assignedVehicule,
+            },
           }));
           alert("Affectation réussie !");
         } else {
@@ -122,10 +126,6 @@ const CollectesList = ({ demandes, loading, onStatusChange }) => {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">
-        Mes Collectes Assignées
-      </h2>
-
       {loading ? (
         <p className="text-gray-500 text-sm">Chargement...</p>
       ) : fetchError ? (
@@ -217,14 +217,23 @@ const CollectesList = ({ demandes, loading, onStatusChange }) => {
                       Cette collecte a été annulée
                     </p>
                   </div>
-                ) : assignedResources[d.id] && assignedResources[d.id].chauffeur && assignedResources[d.id].vehicule ? (
+                ) : assignedResources[d.id] &&
+                  assignedResources[d.id].chauffeur &&
+                  assignedResources[d.id].vehicule ? (
                   <div className="space-y-2">
                     <div className="bg-green-50 p-2 rounded">
                       <p className="text-sm font-medium text-green-800">
-                        Chauffeur assigné: {assignedResources[d.id].chauffeur.nom || 'Non spécifié'}
+                        Chauffeur assigné:{" "}
+                        {assignedResources[d.id].chauffeur.nom ||
+                          "Non spécifié"}
                       </p>
                       <p className="text-sm font-medium text-green-800">
-                        Véhicule: {assignedResources[d.id].vehicule.marque || ''} {assignedResources[d.id].vehicule.modele || ''} ({assignedResources[d.id].vehicule.matricule || 'Non spécifié'})
+                        Véhicule:{" "}
+                        {assignedResources[d.id].vehicule.marque || ""}{" "}
+                        {assignedResources[d.id].vehicule.modele || ""} (
+                        {assignedResources[d.id].vehicule.matricule ||
+                          "Non spécifié"}
+                        )
                       </p>
                     </div>
                   </div>
@@ -276,7 +285,9 @@ const CollectesList = ({ demandes, loading, onStatusChange }) => {
 
                     <button
                       onClick={() => handleAffectation(d.id)}
-                      disabled={!selectedChauffeur[d.id] || !selectedVehicule[d.id]}
+                      disabled={
+                        !selectedChauffeur[d.id] || !selectedVehicule[d.id]
+                      }
                       className={`w-full px-4 py-1 rounded-md text-white text-sm transition ${
                         !selectedChauffeur[d.id] || !selectedVehicule[d.id]
                           ? "bg-gray-400 cursor-not-allowed"
