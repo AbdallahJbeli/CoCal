@@ -4,6 +4,7 @@ import UsersTab from "../components/UsersTab";
 import CollectesList from "../components/CollectesList";
 import VehiculesTab from "../components/VehiculesTab";
 import AnalyticsTab from "../components/AnalyticsTab";
+import ChauffeursList from "../components/ChauffeursList";
 import { useNavigate } from "react-router-dom";
 import AdminDashboard from "../components/AdminDashboard";
 import AdminMessages from "../components/AdminMessages";
@@ -14,6 +15,7 @@ const adminTabs = [
   "Utilisateurs",
   "Collectes",
   "Véhicules",
+  "Chauffeurs",
   "Analytics",
   "Message"
 ];
@@ -49,7 +51,7 @@ const AdminPage = () => {
   const fetchChauffeurs = async () => {
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch("http://localhost:5000/commercial/chauffeurs", {
+      const res = await fetch("http://localhost:5000/admin/chauffeurs", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -164,6 +166,8 @@ const AdminPage = () => {
         return "Gestion des collectes";
       case "Véhicules":
         return "Gestion des véhicules";
+      case "Chauffeurs":
+        return "Gestion des chauffeurs";
       case "Analytics":
         return "Analytics";
       default:
@@ -202,6 +206,9 @@ const AdminPage = () => {
                 vehicules={vehicules}
               />
             </div>
+          )}
+          {activeTab === "Chauffeurs" && (
+            <ChauffeursList chauffeurs={chauffeurs} loading={loading} />
           )}
           {activeTab === "Véhicules" && <VehiculesTab />}
           {activeTab === "Analytics" && <AnalyticsTab />}

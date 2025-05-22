@@ -4,15 +4,12 @@ import { Toaster } from "react-hot-toast"; // <-- import Toaster
 import Homepage from "./pages/Homepage";
 import Login from "./components/login";
 import Adminpage from "./pages/Adminpage";
-import AdminRoute from "../routes/AdminRoute";
-import ClientRoute from "../routes/ClientRoute";
+import { AdminRoute, ClientRoute, CommercialRoute, ChauffeurRoute } from "../routes/ProtectedRoute";
 import ClientPage from "./pages/ClientPage";
-import CommercialRoute from "../routes/CommercialRoute";
 import CommercialPage from "./pages/CommercialPage";
-import ChauffeurRoute from "../routes/ChauffeurRoute";
 import ChauffeurPage from "./pages/ChauffeurPage";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
 
 const App = () => {
   return (

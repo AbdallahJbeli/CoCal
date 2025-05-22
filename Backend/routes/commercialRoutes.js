@@ -4,7 +4,8 @@ import {
   verifyAdminOrCommercial,
   verifyCommercial,
 } from "../middlewares/authMiddleware.js";
-import fetchCommercial from "../middlewares/fetchCommercial.js";
+import { fetchCommercial } from "../middlewares/fetchUser.js";
+import { createMessageRoutes } from "./messageRoutes.js";
 
 const router = express.Router();
 
@@ -268,5 +269,8 @@ router.put("/problemes/:id/status", verifyCommercial, fetchCommercial, async (re
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
+
+
+createMessageRoutes(router, 'commercial', verifyCommercial, fetchCommercial);
 
 export default router;

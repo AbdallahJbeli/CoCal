@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Sidebar from "../components/SideBar";
 import ChauffeurCollectesList from "../components/ChauffeurCollectesList";
 import ChauffeurDashboard from "../components/ChauffeurDashboard";
+import ChauffeurMessages from "../components/ChauffeurMessages";
 
 const chauffeurTabs = [
   "Vue d'ensemble",
@@ -62,9 +63,9 @@ const ChauffeurPage = () => {
           {activeTab === "Messages" && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Messagerie
+                Messages
               </h2>
-              <p className="text-gray-600">Consultez vos messages ici.</p>
+              <ChauffeurMessages />
             </div>
           )}
         </div>

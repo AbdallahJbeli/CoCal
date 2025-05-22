@@ -1,7 +1,8 @@
 import express from "express";
 import pool from "../database.js";
 import { verifyChauffeur } from "../middlewares/authMiddleware.js";
-import fetchChauffeur from "../middlewares/fetchChauffeur.js";
+import { fetchChauffeur } from "../middlewares/fetchUser.js";
+import { createMessageRoutes } from "./messageRoutes.js";
 
 const router = express.Router();
 
@@ -17,7 +18,7 @@ router.get("/collectes", verifyChauffeur, fetchChauffeur, async (req, res) => {
   }
 });
 
-// New route to update collection status
+// Update collection status
 router.put("/collectes/:id/status", verifyChauffeur, fetchChauffeur, async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
@@ -41,7 +42,7 @@ router.put("/collectes/:id/status", verifyChauffeur, fetchChauffeur, async (req,
   }
 });
 
-// New route to report a problem
+// Report a problem
 router.post("/collectes/:id/problem", verifyChauffeur, fetchChauffeur, async (req, res) => {
   const { id } = req.params;
   const { description } = req.body;
@@ -83,4 +84,7 @@ router.post("/collectes/:id/problem", verifyChauffeur, fetchChauffeur, async (re
   }
 });
 
-export default router;
+// Add message routes
+createMessageRoutes(router, 'chauffeur', verifyChauffeur, fetchChauffeur);
+
+export default router; 

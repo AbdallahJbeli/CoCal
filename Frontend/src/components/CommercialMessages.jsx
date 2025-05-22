@@ -1,89 +1,106 @@
 import React, { useState, useEffect } from "react";
-import { AlertCircle, CheckCircle, Clock } from "lucide-react";
+import { MessageSquare, Send, CheckCircle } from "lucide-react";
 
 const CommercialMessages = () => {
-  const [problems, setProblems] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [formData, setFormData] = useState({
+    receiver_id: "",
+    receiver_type: "",
+    subject: "",
+    message: "",
+  });
 
-  useEffect(() => {
-    const fetchProblems = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:5000/commercial/problemes", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch problems");
-        }
-
-        const data = await response.json();
-        setProblems(data);
-        setLoading(false);
-      } catch (err) {
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-
-    fetchProblems();
-  }, []);
-
-  const handleStatusUpdate = async (problemId, newStatus) => {
+  const fetchMessages = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/commercial/problemes/${problemId}/status`, {
-        method: "PUT",
+      const response = await fetch("http://localhost:5000/commercial/messages", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch messages");
+      }
+
+      const data = await response.json();
+      setMessages(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:5000/commercial/messages", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update problem status");
+        throw new Error("Failed to send message");
       }
 
-      setProblems(prevProblems =>
-        prevProblems.map(problem =>
-          problem.id === problemId
-            ? { ...problem, statut: newStatus }
-            : problem
+      // Reset form and refresh messages
+      setFormData({
+        receiver_id: "",
+        receiver_type: "",
+        subject: "",
+        message: "",
+      });
+      fetchMessages();
+    } catch (err) {
+      console.error("Error sending message:", err);
+    }
+  };
+
+  const handleMarkAsRead = async (messageId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:5000/commercial/messages/${messageId}/read`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to mark message as read");
+      }
+
+      // Update local state
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg.id === messageId ? { ...msg, is_read: true } : msg
         )
       );
     } catch (err) {
-      console.error("Error updating problem status:", err);
-      alert("Failed to update problem status");
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "en_attente":
-        return <Clock className="w-5 h-5 text-yellow-500" />;
-      case "en_cours":
-        return <AlertCircle className="w-5 h-5 text-blue-500" />;
-      case "resolu":
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
-      default:
-        return <Clock className="w-5 h-5 text-gray-500" />;
-    }
-  };
-
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case "en_attente":
-        return "En attente";
-      case "en_cours":
-        return "En cours";
-      case "resolu":
-        return "Résolu";
-      default:
-        return status;
+      console.error("Error marking message as read:", err);
     }
   };
 
@@ -103,77 +120,139 @@ const CommercialMessages = () => {
     );
   }
 
-  if (problems.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        Aucun problème signalé
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4">
-      {problems.map((problem) => (
-        <div
-          key={problem.id}
-          className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
-        >
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                {getStatusIcon(problem.statut)}
-                <span className="font-medium text-gray-900">
-                  Collecte #{problem.id_demande}
-                </span>
-                <span
-                  className={`px-2 py-1 text-xs rounded-full ${
-                    problem.statut === "en_attente"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : problem.statut === "en_cours"
-                      ? "bg-blue-100 text-blue-800"
-                      : "bg-green-100 text-green-800"
-                  }`}
-                >
-                  {getStatusLabel(problem.statut)}
-                </span>
-              </div>
-              <p className="text-gray-600 mb-2">{problem.description}</p>
-              <div className="text-sm text-gray-500">
-                Signalé le{" "}
-                {new Date(problem.date_signalement).toLocaleDateString("fr-FR", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-                {" par "}
-                {problem.chauffeur_nom}
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Nouveau Message
+        </h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="receiver_type" className="block text-sm font-medium text-gray-700">
+              Destinataire
+            </label>
+            <select
+              id="receiver_type"
+              name="receiver_type"
+              value={formData.receiver_type}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+              required
+            >
+              <option value="">Sélectionner le type de destinataire</option>
+              <option value="client">Client</option>
+              <option value="chauffeur">Chauffeur</option>
+              <option value="admin">Administrateur</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="receiver_id" className="block text-sm font-medium text-gray-700">
+              ID du destinataire
+            </label>
+            <input
+              type="number"
+              id="receiver_id"
+              name="receiver_id"
+              value={formData.receiver_id}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="subject" className="block text-sm font-medium text-gray-700">
+              Sujet
+            </label>
+            <input
+              type="text"
+              id="subject"
+              name="subject"
+              value={formData.subject}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+              Message
+            </label>
+            <textarea
+              id="message"
+              name="message"
+              value={formData.message}
+              onChange={handleChange}
+              rows={4}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+          >
+            <Send className="h-4 w-4 mr-2" />
+            Envoyer
+          </button>
+        </form>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Messages ({messages.length})
+        </h3>
+        <div className="space-y-4">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`p-4 rounded-lg border ${
+                message.is_read
+                  ? "bg-gray-50 border-gray-200"
+                  : "bg-blue-50 border-blue-200"
+              }`}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 text-gray-500" />
+                    <h4 className="font-medium text-gray-900">
+                      {message.subject}
+                    </h4>
+                  </div>
+                  <p className="mt-1 text-sm text-gray-600">
+                    De: {message.sender_nom} ({message.sender_type})
+                  </p>
+                  <p className="mt-1 text-sm text-gray-600">
+                    À: {message.receiver_nom} ({message.receiver_type})
+                  </p>
+                  <p className="mt-2 text-gray-700">{message.message}</p>
+                  <p className="mt-2 text-sm text-gray-500">
+                    {new Date(message.date_envoi).toLocaleString()}
+                  </p>
+                </div>
+                {!message.is_read && message.receiver_id === parseInt(localStorage.getItem("userId")) && (
+                  <button
+                    onClick={() => handleMarkAsRead(message.id)}
+                    className="ml-4 p-2 text-blue-600 hover:text-blue-700"
+                    title="Marquer comme lu"
+                  >
+                    <CheckCircle className="h-5 w-5" />
+                  </button>
+                )}
               </div>
             </div>
-            {problem.statut !== "resolu" && (
-              <div className="flex gap-2">
-                {problem.statut === "en_attente" && (
-                  <button
-                    onClick={() => handleStatusUpdate(problem.id, "en_cours")}
-                    className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
-                  >
-                    Prendre en charge
-                  </button>
-                )}
-                {problem.statut === "en_cours" && (
-                  <button
-                    onClick={() => handleStatusUpdate(problem.id, "resolu")}
-                    className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
-                  >
-                    Marquer comme résolu
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+          ))}
+          {messages.length === 0 && (
+            <p className="text-center text-gray-500 py-4">
+              Aucun message pour le moment
+            </p>
+          )}
         </div>
-      ))}
+      </div>
     </div>
   );
 };

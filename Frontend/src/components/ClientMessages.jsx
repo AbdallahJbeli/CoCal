@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { MessageSquare, Send, CheckCircle } from "lucide-react";
 
-const AdminMessages = () => {
+const ClientMessages = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     receiver_id: "",
-    receiver_type: "client",
+    receiver_type: "commercial",
     subject: "",
     message: ""
   });
@@ -19,7 +19,7 @@ const AdminMessages = () => {
   const fetchMessages = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/admin/messages", {
+      const response = await fetch("http://localhost:5000/client/messages", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -50,7 +50,7 @@ const AdminMessages = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/admin/messages", {
+      const response = await fetch("http://localhost:5000/client/messages", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -66,7 +66,7 @@ const AdminMessages = () => {
 
       setFormData({
         receiver_id: "",
-        receiver_type: "client",
+        receiver_type: "commercial",
         subject: "",
         message: ""
       });
@@ -79,7 +79,7 @@ const AdminMessages = () => {
   const handleMarkAsRead = async (messageId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/admin/messages/${messageId}/read`, {
+      const response = await fetch(`http://localhost:5000/client/messages/${messageId}/read`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -131,9 +131,8 @@ const AdminMessages = () => {
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
               >
-                <option value="client">Client</option>
                 <option value="commercial">Commercial</option>
-                <option value="chauffeur">Chauffeur</option>
+                <option value="admin">Administrateur</option>
               </select>
             </div>
             <div>
@@ -235,4 +234,4 @@ const AdminMessages = () => {
   );
 };
 
-export default AdminMessages; 
+export default ClientMessages; 

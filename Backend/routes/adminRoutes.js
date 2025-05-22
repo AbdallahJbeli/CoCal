@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import pool from "../database.js";
 import { verifyAdmin } from "../middlewares/authMiddleware.js";
 import { body, param, validationResult } from "express-validator";
+import { createMessageRoutes } from "./messageRoutes.js";
 
 const router = express.Router();
 
@@ -514,5 +515,36 @@ router.put("/problemes/:id/status", verifyAdmin, async (req, res) => {
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
+
+router.get("/chauffeurs", verifyAdmin, async (req, res) => {
+  try {
+    // Get all chauffeurs with their details
+    const [chauffeurs] = await pool.query(
+      `SELECT ch.id, u.nom, ch.disponible, v.id AS vehicule_id, v.marque, v.modele, v.matricule
+       FROM chauffeur ch
+       JOIN utilisateur u ON ch.id_utilisateur = u.id
+       LEFT JOIN vehicule v ON ch.id_vehicule = v.id`
+    );
+
+    // For each chauffeur, get their assigned collectes
+    for (const chauffeur of chauffeurs) {
+      const [collectes] = await pool.query(
+        `SELECT id, type_dechet, date_souhaitee, heure_preferee, statut
+         FROM demande_collecte
+         WHERE id_chauffeur = ?`,
+        [chauffeur.id]
+      );
+      chauffeur.collectes = collectes;
+    }
+
+    res.json(chauffeurs);
+  } catch (err) {
+    console.error("Erreur lors de la récupération des chauffeurs:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
+
+createMessageRoutes(router, 'admin', verifyAdmin, null);
 
 export default router;

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Sidebar from "../components/SideBar";
 import DemandeList from "../components/DemandeList";
 import DemandeCollecteForm from "../components/DemandeCollecteTab";
+import ClientMessages from "../components/ClientMessages";
 
 const clientTabs = [
   "Vue d'ensemble",
@@ -72,7 +73,7 @@ const ClientPage = () => {
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
                 Messages
               </h2>
-              <p className="text-gray-600">Système de messagerie à intégrer.</p>
+              <ClientMessages />
             </div>
           )}
         </div>

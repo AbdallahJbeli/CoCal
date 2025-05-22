@@ -2,7 +2,8 @@ import express from "express";
 import pool from "../database.js";
 import { verifyClient } from "../middlewares/authMiddleware.js";
 import { body, validationResult } from "express-validator";
-import fetchClient from "../middlewares/fetchClient.js";
+import { fetchClient } from "../middlewares/fetchUser.js";
+import { createMessageRoutes } from "./messageRoutes.js";
 
 const router = express.Router();
 
@@ -212,5 +213,8 @@ router.delete(
     }
   }
 );
+
+// Add message routes
+createMessageRoutes(router, 'client', verifyClient, fetchClient);
 
 export default router;
