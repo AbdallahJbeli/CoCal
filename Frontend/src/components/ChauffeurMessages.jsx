@@ -9,7 +9,7 @@ const ChauffeurMessages = () => {
     receiver_id: "",
     receiver_type: "commercial",
     subject: "",
-    message: ""
+    message: "",
   });
 
   useEffect(() => {
@@ -40,9 +40,9 @@ const ChauffeurMessages = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -68,7 +68,7 @@ const ChauffeurMessages = () => {
         receiver_id: "",
         receiver_type: "commercial",
         subject: "",
-        message: ""
+        message: "",
       });
       fetchMessages();
     } catch (err) {
@@ -79,19 +79,22 @@ const ChauffeurMessages = () => {
   const handleMarkAsRead = async (messageId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/chauffeur/messages/${messageId}/read`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `http://localhost:5000/chauffeur/messages/${messageId}/read`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to mark message as read");
       }
 
-      setMessages(prevMessages =>
-        prevMessages.map(msg =>
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
           msg.id === messageId ? { ...msg, is_read: 1 } : msg
         )
       );
@@ -120,11 +123,15 @@ const ChauffeurMessages = () => {
     <div className="space-y-6">
       {/* Message Form */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Envoyer un message</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          Envoyer un message
+        </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Type de destinataire</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Type de destinataire
+              </label>
               <select
                 name="receiver_type"
                 value={formData.receiver_type}
@@ -136,7 +143,9 @@ const ChauffeurMessages = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">ID du destinataire</label>
+              <label className="block text-sm font-medium text-gray-700">
+                ID du destinataire
+              </label>
               <input
                 type="number"
                 name="receiver_id"
@@ -148,7 +157,9 @@ const ChauffeurMessages = () => {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Sujet</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Sujet
+            </label>
             <input
               type="text"
               name="subject"
@@ -159,7 +170,9 @@ const ChauffeurMessages = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Message</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Message
+            </label>
             <textarea
               name="message"
               value={formData.message}
@@ -183,9 +196,7 @@ const ChauffeurMessages = () => {
       <div className="space-y-4">
         <h3 className="text-lg font-medium text-gray-900">Messages</h3>
         {messages.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            Aucun message
-          </div>
+          <div className="text-center py-8 text-gray-500">Aucun message</div>
         ) : (
           messages.map((msg) => (
             <div
@@ -197,15 +208,21 @@ const ChauffeurMessages = () => {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <MessageSquare className={`w-5 h-5 ${
-                      msg.is_read ? "text-gray-400" : "text-green-500"
-                    }`} />
-                    <span className="font-medium text-gray-900">{msg.subject}</span>
-                    {!msg.is_read && msg.receiver_id === parseInt(localStorage.getItem("userId")) && (
-                      <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                        Non lu
-                      </span>
-                    )}
+                    <MessageSquare
+                      className={`w-5 h-5 ${
+                        msg.is_read ? "text-gray-400" : "text-green-500"
+                      }`}
+                    />
+                    <span className="font-medium text-gray-900">
+                      {msg.subject}
+                    </span>
+                    {!msg.is_read &&
+                      msg.receiver_id ===
+                        parseInt(localStorage.getItem("userId")) && (
+                        <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                          Non lu
+                        </span>
+                      )}
                   </div>
                   <p className="text-gray-600 mb-2">{msg.message}</p>
                   <div className="text-sm text-gray-500">
@@ -216,15 +233,17 @@ const ChauffeurMessages = () => {
                     Le: {new Date(msg.date_envoi).toLocaleString("fr-FR")}
                   </div>
                 </div>
-                {!msg.is_read && msg.receiver_id === parseInt(localStorage.getItem("userId")) && (
-                  <button
-                    onClick={() => handleMarkAsRead(msg.id)}
-                    className="inline-flex items-center px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-1" />
-                    Marquer comme lu
-                  </button>
-                )}
+                {!msg.is_read &&
+                  msg.receiver_id ===
+                    parseInt(localStorage.getItem("userId")) && (
+                    <button
+                      onClick={() => handleMarkAsRead(msg.id)}
+                      className="inline-flex items-center px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      Marquer comme lu
+                    </button>
+                  )}
               </div>
             </div>
           ))
@@ -234,4 +253,4 @@ const ChauffeurMessages = () => {
   );
 };
 
-export default ChauffeurMessages; 
+export default ChauffeurMessages;

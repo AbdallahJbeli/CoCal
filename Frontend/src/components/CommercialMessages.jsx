@@ -15,11 +15,14 @@ const CommercialMessages = () => {
   const fetchMessages = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/commercial/messages", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        "http://localhost:5000/commercial/messages",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch messages");
@@ -50,14 +53,17 @@ const CommercialMessages = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/commercial/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(
+        "http://localhost:5000/commercial/messages",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(formData),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to send message");
@@ -128,7 +134,10 @@ const CommercialMessages = () => {
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="receiver_type" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="receiver_type"
+              className="block text-sm font-medium text-gray-700"
+            >
               Destinataire
             </label>
             <select
@@ -147,7 +156,10 @@ const CommercialMessages = () => {
           </div>
 
           <div>
-            <label htmlFor="receiver_id" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="receiver_id"
+              className="block text-sm font-medium text-gray-700"
+            >
               ID du destinataire
             </label>
             <input
@@ -162,7 +174,10 @@ const CommercialMessages = () => {
           </div>
 
           <div>
-            <label htmlFor="subject" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="subject"
+              className="block text-sm font-medium text-gray-700"
+            >
               Sujet
             </label>
             <input
@@ -177,7 +192,10 @@ const CommercialMessages = () => {
           </div>
 
           <div>
-            <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="message"
+              className="block text-sm font-medium text-gray-700"
+            >
               Message
             </label>
             <textarea
@@ -234,15 +252,17 @@ const CommercialMessages = () => {
                     {new Date(message.date_envoi).toLocaleString()}
                   </p>
                 </div>
-                {!message.is_read && message.receiver_id === parseInt(localStorage.getItem("userId")) && (
-                  <button
-                    onClick={() => handleMarkAsRead(message.id)}
-                    className="ml-4 p-2 text-blue-600 hover:text-blue-700"
-                    title="Marquer comme lu"
-                  >
-                    <CheckCircle className="h-5 w-5" />
-                  </button>
-                )}
+                {!message.is_read &&
+                  message.receiver_id ===
+                    parseInt(localStorage.getItem("userId")) && (
+                    <button
+                      onClick={() => handleMarkAsRead(message.id)}
+                      className="ml-4 p-2 text-blue-600 hover:text-blue-700"
+                      title="Marquer comme lu"
+                    >
+                      <CheckCircle className="h-5 w-5" />
+                    </button>
+                  )}
               </div>
             </div>
           ))}
@@ -257,4 +277,4 @@ const CommercialMessages = () => {
   );
 };
 
-export default CommercialMessages; 
+export default CommercialMessages;
