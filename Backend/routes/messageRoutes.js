@@ -1,5 +1,20 @@
 import pool from "../database.js";
 
+// Get users by type
+export const getUsersByType = async (req, res) => {
+  const { type } = req.params;
+  try {
+    const [users] = await pool.query(
+      "SELECT id, nom FROM utilisateur WHERE LOWER(typeUtilisateur) = LOWER(?)",
+      [type]
+    );
+    res.json(users);
+  } catch (err) {
+    console.error("Erreur lors de la récupération des utilisateurs:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
 export const createMessageRoutes = (router, userType, verifyMiddleware, fetchMiddleware) => {
   // Create middleware array, only including fetchMiddleware if it's provided
   const middleware = [verifyMiddleware];
@@ -34,7 +49,7 @@ export const createMessageRoutes = (router, userType, verifyMiddleware, fetchMid
     try {
       // Verify receiver exists
       const [receiver] = await pool.query(
-        "SELECT id FROM utilisateur WHERE id = ? AND typeUtilisateur = ?",
+        "SELECT id FROM utilisateur WHERE id = ? AND LOWER(typeUtilisateur) = LOWER(?)",
         [receiver_id, receiver_type]
       );
 
@@ -45,7 +60,7 @@ export const createMessageRoutes = (router, userType, verifyMiddleware, fetchMid
       const [result] = await pool.query(
         `INSERT INTO messages (sender_id, sender_type, receiver_id, receiver_type, subject, message)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [req.user.id, userType, receiver_id, receiver_type, subject, message]
+        [req.user.id, userType.toLowerCase(), receiver_id, receiver_type.toLowerCase(), subject, message]
       );
 
       res.status(201).json({ 

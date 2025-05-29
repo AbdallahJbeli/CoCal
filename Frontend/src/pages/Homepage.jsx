@@ -23,7 +23,7 @@ export const Homepage = () => {
           {/* Hero Image */}
           <div className="w-full md:w-1/2 flex justify-center mb-8 md:mb-0">
             <img
-              src={"/src/assets/images/Cocal.png"}
+              src={"/src/assets/images/logo.png"}
               alt="CoCal Hero"
               className="rounded-xl shadow-lg object-cover w-full max-w-md"
             />
@@ -154,7 +154,7 @@ export const Homepage = () => {
           </div>
           <div className="flex justify-center items-center">
             <img
-              src={"/src/assets/images/Cocal.png"}
+              src={"/src/assets/images/logo.png"}
               alt="CoCal Mission"
               className="w-80 h-56 object-cover rounded-lg shadow"
             />

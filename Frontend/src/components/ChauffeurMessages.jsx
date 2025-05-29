@@ -5,6 +5,7 @@ const ChauffeurMessages = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [recipients, setRecipients] = useState([]);
   const [formData, setFormData] = useState({
     receiver_id: "",
     receiver_type: "commercial",
@@ -15,6 +16,38 @@ const ChauffeurMessages = () => {
   useEffect(() => {
     fetchMessages();
   }, []);
+
+  useEffect(() => {
+    if (formData.receiver_type) {
+      fetchRecipients(formData.receiver_type);
+    }
+  }, [formData.receiver_type]);
+
+  const fetchRecipients = async (type) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const response = await fetch(`http://localhost:5000/chauffeur/users/${type.toLowerCase()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch recipients");
+      }
+
+      const data = await response.json();
+      setRecipients(data);
+    } catch (err) {
+      console.error("Error fetching recipients:", err);
+      setError(err.message);
+    }
+  };
 
   const fetchMessages = async () => {
     try {
@@ -144,16 +177,22 @@ const ChauffeurMessages = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                ID du destinataire
+                Destinataire
               </label>
-              <input
-                type="number"
+              <select
                 name="receiver_id"
                 value={formData.receiver_id}
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                 required
-              />
+              >
+                <option value="">Sélectionner un destinataire</option>
+                {recipients.map((recipient) => (
+                  <option key={recipient.id} value={recipient.id}>
+                    {recipient.nom}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <div>

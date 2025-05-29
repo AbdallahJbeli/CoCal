@@ -270,6 +270,19 @@ router.put("/problemes/:id/status", verifyCommercial, fetchCommercial, async (re
   }
 });
 
+router.get("/users/:type", verifyCommercial, fetchCommercial, async (req, res) => {
+  const { type } = req.params;
+  try {
+    const [users] = await pool.query(
+      "SELECT id, nom FROM utilisateur WHERE LOWER(typeUtilisateur) = LOWER(?)",
+      [type]
+    );
+    res.json(users);
+  } catch (err) {
+    console.error("Erreur lors de la récupération des utilisateurs:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
 
 createMessageRoutes(router, 'commercial', verifyCommercial, fetchCommercial);
 

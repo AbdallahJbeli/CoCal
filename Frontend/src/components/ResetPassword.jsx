@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { AlertCircle, Key, Loader, ArrowRight, Eye, EyeOff } from "lucide-react";
+import {
+  AlertCircle,
+  Key,
+  Loader,
+  ArrowRight,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -63,7 +70,8 @@ const ResetPassword = () => {
       }, 3000);
     } catch (err) {
       setError(
-        err.response?.data?.message || "Une erreur est survenue. Veuillez réessayer."
+        err.response?.data?.message ||
+          "Une erreur est survenue. Veuillez réessayer."
       );
     } finally {
       setIsSubmitting(false);
@@ -90,7 +98,7 @@ const ResetPassword = () => {
         {/* Left: Image */}
         <div className="hidden md:block md:w-[56%] bg-green-100">
           <img
-            src={"/src/assets/images/Cocal.png"}
+            src={"/src/assets/images/logo.png"}
             alt="Green leaves"
             className="object-cover w-full h-full"
           />
@@ -103,8 +111,12 @@ const ResetPassword = () => {
             <span className="font-bold text-lg text-gray-800">CoCal</span>
           </div>
           {/* Title and Subtitle */}
-          <h2 className="text-3xl font-extrabold mb-2 text-gray-900">Réinitialiser le mot de passe</h2>
-          <p className="mb-6 text-gray-500">Entrez et confirmez votre nouveau mot de passe.</p>
+          <h2 className="text-3xl font-extrabold mb-2 text-gray-900">
+            Réinitialiser le mot de passe
+          </h2>
+          <p className="mb-6 text-gray-500">
+            Entrez et confirmez votre nouveau mot de passe.
+          </p>
 
           {error && (
             <div className="mb-4 p-3 text-sm rounded-lg bg-red-50 text-red-700 border border-red-200 flex items-center justify-center">
@@ -123,7 +135,9 @@ const ResetPassword = () => {
           <form onSubmit={handleSubmit}>
             {/* New Password */}
             <div className="mb-4 relative flex flex-col">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Nouveau mot de passe</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nouveau mot de passe
+              </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -151,7 +165,9 @@ const ResetPassword = () => {
             </div>
             {/* Confirm Password */}
             <div className="mb-4 relative flex flex-col">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Confirmer le mot de passe</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Confirmer le mot de passe
+              </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}

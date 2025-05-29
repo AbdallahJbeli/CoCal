@@ -214,6 +214,20 @@ router.delete(
   }
 );
 
+router.get("/users/:type", verifyClient, fetchClient, async (req, res) => {
+  const { type } = req.params;
+  try {
+    const [users] = await pool.query(
+      "SELECT id, nom FROM utilisateur WHERE LOWER(typeUtilisateur) = LOWER(?)",
+      [type]
+    );
+    res.json(users);
+  } catch (err) {
+    console.error("Erreur lors de la récupération des utilisateurs:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
 // Add message routes
 createMessageRoutes(router, 'client', verifyClient, fetchClient);
 

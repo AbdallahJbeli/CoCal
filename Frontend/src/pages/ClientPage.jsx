@@ -3,6 +3,7 @@ import Sidebar from "../components/SideBar";
 import DemandeList from "../components/DemandeList";
 import DemandeCollecteForm from "../components/DemandeCollecteTab";
 import ClientMessages from "../components/ClientMessages";
+import ClientDashboard from "../components/ClientDashboard";
 
 const clientTabs = [
   "Vue d'ensemble",
@@ -46,10 +47,7 @@ const ClientPage = () => {
         <div className="flex-1 p-6 mt-20 overflow-y-auto bg-gray-50">
           {activeTab === "Vue d'ensemble" && (
             <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Dashboard Content
-              </h2>
-              <p className="text-gray-600">Your dashboard content goes here.</p>
+              <ClientDashboard />
             </div>
           )}
 

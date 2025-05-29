@@ -157,6 +157,23 @@ router.get("/users", verifyAdmin, async (req, res) => {
   }
 });
 
+router.get("/users/:type", verifyAdmin, async (req, res) => {
+  const { type } = req.params;
+  try {
+    const [users] = await pool.query(
+      "SELECT id, nom FROM utilisateur WHERE LOWER(typeUtilisateur) = LOWER(?)",
+      [type]
+    );
+    if (users.length === 0) {
+      return res.status(404).json({ message: `Aucun utilisateur de type ${type} trouvé` });
+    }
+    res.json(users);
+  } catch (err) {
+    console.error("Erreur lors de la récupération des utilisateurs:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
 router.get(
   "/users/:id",
   [verifyAdmin, param("id").isInt()],
@@ -193,7 +210,6 @@ router.get(
 
       res.status(200).json(rows[0]);
     } catch (err) {
-      // console.error("Erreur récupération utilisateur:", err);
       sendError(res, 500, "Erreur lors de la récupération de l'utilisateur.");
     }
   }
@@ -543,7 +559,6 @@ router.get("/chauffeurs", verifyAdmin, async (req, res) => {
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
-
 
 createMessageRoutes(router, 'admin', verifyAdmin, null);
 

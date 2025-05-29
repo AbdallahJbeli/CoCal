@@ -12,8 +12,11 @@ const Navabar = () => {
             href="/"
           >
             <span className="flex items-center mr-2">
-              <Egg className="h-7 w-7 text-green-600" />
-              <Coffee className="h-7 w-7 text-amber-600 ml-1" />
+              <img
+                src={"/src/assets/images/logo.png"}
+                alt="Green leaves"
+                className="w-10 h-10 object-contain"
+              />
             </span>
             <span className="text-amber-800">
               Co<span className="text-green-600">Cal</span>

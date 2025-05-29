@@ -5,9 +5,10 @@ const AdminMessages = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [recipients, setRecipients] = useState([]);
   const [formData, setFormData] = useState({
     receiver_id: "",
-    receiver_type: "client",
+    receiver_type: "",
     subject: "",
     message: "",
   });
@@ -15,6 +16,40 @@ const AdminMessages = () => {
   useEffect(() => {
     fetchMessages();
   }, []);
+
+  useEffect(() => {
+    if (formData.receiver_type) {
+      fetchRecipients(formData.receiver_type);
+    }
+  }, [formData.receiver_type]);
+
+  const fetchRecipients = async (type) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const response = await fetch(`http://localhost:5000/admin/users/${type}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch recipients");
+      }
+
+      const data = await response.json();
+      setRecipients(data);
+      setError(null); // Clear any previous errors
+    } catch (err) {
+      console.error("Error fetching recipients:", err);
+      setError(err.message);
+      setRecipients([]); // Clear recipients on error
+    }
+  };
 
   const fetchMessages = async () => {
     try {
@@ -31,9 +66,9 @@ const AdminMessages = () => {
 
       const data = await response.json();
       setMessages(data);
-      setLoading(false);
     } catch (err) {
       setError(err.message);
+    } finally {
       setLoading(false);
     }
   };
@@ -60,19 +95,18 @@ const AdminMessages = () => {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Failed to send message");
+        throw new Error("Failed to send message");
       }
 
       setFormData({
         receiver_id: "",
-        receiver_type: "client",
+        receiver_type: "",
         subject: "",
         message: "",
       });
       fetchMessages();
     } catch (err) {
-      alert(err.message);
+      console.error("Error sending message:", err);
     }
   };
 
@@ -95,7 +129,7 @@ const AdminMessages = () => {
 
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
-          msg.id === messageId ? { ...msg, is_read: 1 } : msg
+          msg.id === messageId ? { ...msg, is_read: true } : msg
         )
       );
     } catch (err) {
@@ -121,48 +155,67 @@ const AdminMessages = () => {
 
   return (
     <div className="space-y-6">
-      {/* Message Form */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
-          Envoyer un message
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Nouveau Message
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Type de destinataire
-              </label>
-              <select
-                name="receiver_type"
-                value={formData.receiver_type}
-                onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-              >
-                <option value="client">Client</option>
-                <option value="commercial">Commercial</option>
-                <option value="chauffeur">Chauffeur</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                ID du destinataire
-              </label>
-              <input
-                type="number"
-                name="receiver_id"
-                value={formData.receiver_id}
-                onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-                required
-              />
-            </div>
-          </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="receiver_type"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Type de destinataire
+            </label>
+            <select
+              id="receiver_type"
+              name="receiver_type"
+              value={formData.receiver_type}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+              required
+            >
+              <option value="">Sélectionner le type de destinataire</option>
+              <option value="client">Client</option>
+              <option value="commercial">Commercial</option>
+              <option value="chauffeur">Chauffeur</option>
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="receiver_id"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Destinataire
+            </label>
+            <select
+              id="receiver_id"
+              name="receiver_id"
+              value={formData.receiver_id}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+              required
+            >
+              <option value="">Sélectionner un destinataire</option>
+              {recipients.map((recipient) => (
+                <option key={recipient.id} value={recipient.id}>
+                  {recipient.nom}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="subject"
+              className="block text-sm font-medium text-gray-700"
+            >
               Sujet
             </label>
             <input
               type="text"
+              id="subject"
               name="subject"
               value={formData.subject}
               onChange={handleChange}
@@ -170,85 +223,88 @@ const AdminMessages = () => {
               required
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="message"
+              className="block text-sm font-medium text-gray-700"
+            >
               Message
             </label>
             <textarea
+              id="message"
               name="message"
               value={formData.message}
               onChange={handleChange}
-              rows="4"
+              rows={4}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
               required
-            ></textarea>
+            />
           </div>
+
           <button
             type="submit"
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
           >
-            <Send className="w-4 h-4 mr-2" />
+            <Send className="h-4 w-4 mr-2" />
             Envoyer
           </button>
         </form>
       </div>
 
-      {/* Messages List */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium text-gray-900">Messages</h3>
-        {messages.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">Aucun message</div>
-        ) : (
-          messages.map((msg) => (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Messages ({messages.length})
+        </h3>
+        <div className="space-y-4">
+          {messages.map((message) => (
             <div
-              key={msg.id}
-              className={`bg-white rounded-lg shadow-sm border ${
-                msg.is_read ? "border-gray-200" : "border-green-200"
-              } p-4`}
+              key={message.id}
+              className={`p-4 rounded-lg border ${
+                message.is_read
+                  ? "bg-gray-50 border-gray-200"
+                  : "bg-blue-50 border-blue-200"
+              }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MessageSquare
-                      className={`w-5 h-5 ${
-                        msg.is_read ? "text-gray-400" : "text-green-500"
-                      }`}
-                    />
-                    <span className="font-medium text-gray-900">
-                      {msg.subject}
-                    </span>
-                    {!msg.is_read &&
-                      msg.receiver_id ===
-                        parseInt(localStorage.getItem("userId")) && (
-                        <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                          Non lu
-                        </span>
-                      )}
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 text-gray-500" />
+                    <h4 className="font-medium text-gray-900">
+                      {message.subject}
+                    </h4>
                   </div>
-                  <p className="text-gray-600 mb-2">{msg.message}</p>
-                  <div className="text-sm text-gray-500">
-                    De: {msg.sender_nom} ({msg.sender_type})
-                    <br />
-                    À: {msg.receiver_nom} ({msg.receiver_type})
-                    <br />
-                    Le: {new Date(msg.date_envoi).toLocaleString("fr-FR")}
-                  </div>
+                  <p className="mt-1 text-sm text-gray-600">
+                    De: {message.sender_nom} ({message.sender_type})
+                  </p>
+                  <p className="mt-1 text-sm text-gray-600">
+                    À: {message.receiver_nom} ({message.receiver_type})
+                  </p>
+                  <p className="mt-2 text-gray-700">{message.message}</p>
+                  <p className="mt-2 text-sm text-gray-500">
+                    {new Date(message.date_envoi).toLocaleString()}
+                  </p>
                 </div>
-                {!msg.is_read &&
-                  msg.receiver_id ===
+                {!message.is_read &&
+                  message.receiver_id ===
                     parseInt(localStorage.getItem("userId")) && (
                     <button
-                      onClick={() => handleMarkAsRead(msg.id)}
-                      className="inline-flex items-center px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
+                      onClick={() => handleMarkAsRead(message.id)}
+                      className="ml-4 p-2 text-blue-600 hover:text-blue-700"
+                      title="Marquer comme lu"
                     >
-                      <CheckCircle className="w-4 h-4 mr-1" />
-                      Marquer comme lu
+                      <CheckCircle className="h-5 w-5" />
                     </button>
                   )}
               </div>
             </div>
-          ))
-        )}
+          ))}
+          {messages.length === 0 && (
+            <p className="text-center text-gray-500 py-4">
+              Aucun message pour le moment
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

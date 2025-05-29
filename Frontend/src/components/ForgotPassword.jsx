@@ -47,7 +47,7 @@ const ForgotPassword = () => {
         {/* Left: Image */}
         <div className="hidden md:block md:w-1/2 bg-green-100">
           <img
-            src={"/src/assets/images/Cocal.png"}
+            src={"/src/assets/images/logo.png"}
             alt="Green leaves"
             className="object-cover w-full h-full"
           />
