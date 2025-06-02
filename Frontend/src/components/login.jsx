@@ -60,7 +60,6 @@ const Login = () => {
         localStorage.removeItem("token");
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const validateForm = () => {
