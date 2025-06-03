@@ -30,11 +30,14 @@ const AdminMessages = () => {
         throw new Error("No authentication token found");
       }
 
-      const response = await fetch(`http://localhost:5000/admin/users/${type}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `http://localhost:5000/admin/users/${type}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
