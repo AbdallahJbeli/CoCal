@@ -9,7 +9,6 @@ import { useNavigate } from "react-router-dom";
 import AdminDashboard from "../components/AdminDashboard";
 import AdminMessages from "../components/AdminMessages";
 
-
 const adminTabs = [
   "Vue d'ensemble",
   "Utilisateurs",
@@ -17,7 +16,7 @@ const adminTabs = [
   "Véhicules",
   "Chauffeurs",
   "Analytics",
-  "Message"
+  "Message",
 ];
 
 const AdminPage = () => {
@@ -68,11 +67,14 @@ const AdminPage = () => {
   const fetchVehicules = async () => {
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch("http://localhost:5000/commercial/vehicules-disponibles", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await fetch(
+        "http://localhost:5000/commercial/vehicules-disponibles",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       if (res.ok) {
         const data = await res.json();
         setVehicules(data);
@@ -128,14 +130,17 @@ const AdminPage = () => {
   const handleAffectation = async (id, id_chauffeur, id_vehicule) => {
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`http://localhost:5000/admin/collectes/${id}/affectation`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ id_chauffeur, id_vehicule }),
-      });
+      const res = await fetch(
+        `http://localhost:5000/admin/collectes/${id}/affectation`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ id_chauffeur, id_vehicule }),
+        }
+      );
       if (res.ok) {
         fetchCollectes();
         fetchChauffeurs();

@@ -11,11 +11,17 @@ import pool from "./database.js";
 
 dotenv.config();
 
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 
 const app = express();
 
 app.use(cors());
+
+// app.use((req, res, next) => {
+//   res.setHeader("Access-Control-Allow-Private-Network", "true");
+//   next();
+// });
+
 app.use(express.json());
 
 app.use("/auth", authRoutes);
