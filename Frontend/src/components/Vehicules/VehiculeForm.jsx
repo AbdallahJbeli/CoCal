@@ -11,7 +11,7 @@ import {
   XCircle,
   Clock,
 } from "lucide-react";
-import FormInput from "./FormInput";
+import FormInput from "../FormInput";
 
 const VehiculeForm = ({
   formData,

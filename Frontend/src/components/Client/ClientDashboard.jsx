@@ -209,6 +209,7 @@ const ClientDashboard = () => {
                     <strong>Date souhaitée :</strong>{" "}
                     {new Date(item.date_souhaitee).toLocaleDateString()}
                   </p>
+
                   <p
                     className={`text-sm font-medium ${getStatusColor(
                       item.statut
@@ -220,6 +221,16 @@ const ClientDashboard = () => {
                     <p className="text-sm text-gray-600 mt-1">
                       <strong>Notes :</strong> {item.notes_supplementaires}
                     </p>
+                  )}
+                  {item.latitude && item.longitude && (
+                    <a
+                      href={`https://www.openstreetmap.org/?mlat=${item.latitude}&mlon=${item.longitude}#map=18/${item.latitude}/${item.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-sm text-green-700 hover:underline mt-1"
+                    >
+                      Voir la localisation
+                    </a>
                   )}
                 </div>
               ))}

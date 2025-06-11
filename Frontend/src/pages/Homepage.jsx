@@ -11,12 +11,12 @@ import {
   Globe,
 } from "lucide-react";
 import "../assets/css/App.css";
-import Navabar from "../components/Navabar";
+import Navbar from "../components/Navbar";
 
 export const Homepage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navabar />
+      <Navbar />
 
       <section className="relative bg-white overflow-hidden pt-8 pb-8">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-8">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { MessageSquare, Send, CheckCircle } from "lucide-react";
+import { MessageSquare, Send, CheckCircle, Trash2 } from "lucide-react";
 
 const CommercialMessages = () => {
   const [messages, setMessages] = useState([]);
@@ -26,11 +26,14 @@ const CommercialMessages = () => {
   const fetchRecipients = async (type) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/commercial/users/${type}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `http://localhost:5000/commercial/users/${type}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch recipients");
@@ -128,12 +131,35 @@ const CommercialMessages = () => {
 
       // Update local state
       setMessages((prevMessages) =>
-        prevMessages.map((msg) =>
-          msg.id === messageId ? { ...msg, is_read: true } : msg
+        prevMessages.map((message) =>
+          message.id === messageId ? { ...message, is_read: true } : message
         )
       );
     } catch (err) {
       console.error("Error marking message as read:", err);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm("Are you sure you want to delete this message?"))
+      return;
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:5000/commercial/messages/${messageId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to delete message");
+      }
+      setMessages((prev) => prev.filter((message) => message.id !== messageId));
+    } catch (err) {
+      alert("Error deleting message: " + err.message);
     }
   };
 
@@ -285,17 +311,26 @@ const CommercialMessages = () => {
                     {new Date(message.date_envoi).toLocaleString()}
                   </p>
                 </div>
-                {!message.is_read &&
-                  message.receiver_id ===
-                    parseInt(localStorage.getItem("userId")) && (
-                    <button
-                      onClick={() => handleMarkAsRead(message.id)}
-                      className="ml-4 p-2 text-blue-600 hover:text-blue-700"
-                      title="Marquer comme lu"
-                    >
-                      <CheckCircle className="h-5 w-5" />
-                    </button>
-                  )}
+                <div className="flex flex-col items-end">
+                  {!message.is_read &&
+                    message.receiver_id ===
+                      parseInt(localStorage.getItem("userId")) && (
+                      <button
+                        onClick={() => handleMarkAsRead(message.id)}
+                        className="inline-flex items-center px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-1" />
+                        Marquer comme lu
+                      </button>
+                    )}
+                  <button
+                    onClick={() => handleDeleteMessage(message.id)}
+                    className="inline-flex items-center px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors mt-2"
+                    title="Supprimer le message"
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}

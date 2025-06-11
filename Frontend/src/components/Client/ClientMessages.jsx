@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { MessageSquare, Send, CheckCircle } from "lucide-react";
+import { MessageSquare, Send, CheckCircle, Trash2 } from "lucide-react";
 
-const ChauffeurMessages = () => {
+const ClientMessages = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,11 +30,14 @@ const ChauffeurMessages = () => {
         throw new Error("No authentication token found");
       }
 
-      const response = await fetch(`http://localhost:5000/chauffeur/users/${type.toLowerCase()}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `http://localhost:5000/client/users/${type.toLowerCase()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -52,7 +55,7 @@ const ChauffeurMessages = () => {
   const fetchMessages = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/chauffeur/messages", {
+      const response = await fetch("http://localhost:5000/client/messages", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -83,7 +86,7 @@ const ChauffeurMessages = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/chauffeur/messages", {
+      const response = await fetch("http://localhost:5000/client/messages", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -113,7 +116,7 @@ const ChauffeurMessages = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5000/chauffeur/messages/${messageId}/read`,
+        `http://localhost:5000/client/messages/${messageId}/read`,
         {
           method: "PUT",
           headers: {
@@ -127,12 +130,38 @@ const ChauffeurMessages = () => {
       }
 
       setMessages((prevMessages) =>
-        prevMessages.map((msg) =>
-          msg.id === messageId ? { ...msg, is_read: 1 } : msg
+        prevMessages.map((message) =>
+          message.id === messageId ? { ...message, is_read: 1 } : message
         )
       );
     } catch (err) {
       console.error("Error marking message as read:", err);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm("Are you sure you want to delete this message?"))
+      return;
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:5000/client/messages/${messageId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to delete message");
+      }
+      setMessages((prevMessages) =>
+        prevMessages.filter((message) => message.id !== messageId)
+      );
+    } catch (err) {
+      console.error("Error deleting message:", err);
+      setError && setError("Failed to delete message");
     }
   };
 
@@ -237,11 +266,11 @@ const ChauffeurMessages = () => {
         {messages.length === 0 ? (
           <div className="text-center py-8 text-gray-500">Aucun message</div>
         ) : (
-          messages.map((msg) => (
+          messages.map((message) => (
             <div
-              key={msg.id}
+              key={message.id}
               className={`bg-white rounded-lg shadow-sm border ${
-                msg.is_read ? "border-gray-200" : "border-green-200"
+                message.is_read ? "border-gray-200" : "border-green-200"
               } p-4`}
             >
               <div className="flex items-start justify-between">
@@ -249,40 +278,49 @@ const ChauffeurMessages = () => {
                   <div className="flex items-center gap-2 mb-2">
                     <MessageSquare
                       className={`w-5 h-5 ${
-                        msg.is_read ? "text-gray-400" : "text-green-500"
+                        message.is_read ? "text-gray-400" : "text-green-500"
                       }`}
                     />
                     <span className="font-medium text-gray-900">
-                      {msg.subject}
+                      {message.subject}
                     </span>
-                    {!msg.is_read &&
-                      msg.receiver_id ===
+                    {!message.is_read &&
+                      message.receiver_id ===
                         parseInt(localStorage.getItem("userId")) && (
                         <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
                           Non lu
                         </span>
                       )}
                   </div>
-                  <p className="text-gray-600 mb-2">{msg.message}</p>
+                  <p className="text-gray-600 mb-2">{message.message}</p>
                   <div className="text-sm text-gray-500">
-                    De: {msg.sender_nom} ({msg.sender_type})
+                    De: {message.sender_nom} ({message.sender_type})
                     <br />
-                    À: {msg.receiver_nom} ({msg.receiver_type})
+                    À: {message.receiver_nom} ({message.receiver_type})
                     <br />
-                    Le: {new Date(msg.date_envoi).toLocaleString("fr-FR")}
+                    Le: {new Date(message.date_envoi).toLocaleString("fr-FR")}
                   </div>
                 </div>
-                {!msg.is_read &&
-                  msg.receiver_id ===
-                    parseInt(localStorage.getItem("userId")) && (
-                    <button
-                      onClick={() => handleMarkAsRead(msg.id)}
-                      className="inline-flex items-center px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-1" />
-                      Marquer comme lu
-                    </button>
-                  )}
+                <div className="flex flex-col items-end">
+                  {!message.is_read &&
+                    message.receiver_id ===
+                      parseInt(localStorage.getItem("userId")) && (
+                      <button
+                        onClick={() => handleMarkAsRead(message.id)}
+                        className="inline-flex items-center px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-1" />
+                        Marquer comme lu
+                      </button>
+                    )}
+                  <button
+                    onClick={() => handleDeleteMessage(message.id)}
+                    className="inline-flex items-center px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors mt-2"
+                    title="Supprimer le message"
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                  </button>
+                </div>
               </div>
             </div>
           ))
@@ -292,4 +330,4 @@ const ChauffeurMessages = () => {
   );
 };
 
-export default ChauffeurMessages;
+export default ClientMessages;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Calendar, AlertCircle } from "lucide-react";
-import FormInput from "./FormInput";
-import TypeDechetRadioGroup from "./TypeDechetRadioGroup";
+import FormInput from "../FormInput";
+import TypeDechetRadioGroup from "../TypeDechetRadioGroup";
 import { toast } from "react-hot-toast";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";

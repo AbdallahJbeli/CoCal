@@ -8,8 +8,8 @@ import { createMessageRoutes } from "./messageRoutes.js";
 const router = express.Router();
 
 const demandeCollecteValidation = [
-  body("type_dechet").notEmpty().withMessage("type_dechet requis"),
-  body("date_souhaitee").notEmpty().withMessage("date_souhaitee requise"),
+  body("type_dechet").notEmpty().withMessage("type_dechet is required"),
+  body("date_souhaitee").notEmpty().withMessage("date_souhaitee is required"),
 ];
 
 const sendError = (res, status, message) => {
@@ -62,13 +62,12 @@ router.post(
       );
       await connection.commit();
       res.status(201).json({
-        message: "Demande envoyée avec succès",
+        message: "Request sent successfully",
         demande_id: result.insertId,
       });
     } catch (err) {
       await connection.rollback();
-      console.error("Erreur serveur:", err);
-      sendError(res, 500, "Erreur serveur");
+      sendError(res, 500, "Server error");
     } finally {
       connection.release();
     }
@@ -83,8 +82,7 @@ router.get("/demande-collecte", verifyClient, fetchClient, async (req, res) => {
     );
     res.json(rows);
   } catch (err) {
-    console.error("Erreur serveur:", err);
-    res.status(500).json({ message: "Erreur serveur" });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -118,11 +116,11 @@ router.put(
       );
       if (!demande) {
         await connection.rollback();
-        return sendError(res, 404, "Demande introuvable");
+        return sendError(res, 404, "Request not found");
       }
       if (demande.id_client !== req.client.id) {
         await connection.rollback();
-        return sendError(res, 403, "Accès non autorisé");
+        return sendError(res, 403, "Unauthorized access");
       }
 
       const updateFields = [];
@@ -159,7 +157,7 @@ router.put(
 
       if (updateFields.length === 0) {
         await connection.rollback();
-        return sendError(res, 400, "Aucune donnée à mettre à jour.");
+        return sendError(res, 400, "No data to update.");
       }
 
       values.push(id);
@@ -169,11 +167,10 @@ router.put(
         values
       );
       await connection.commit();
-      res.status(200).json({ message: "Demande modifiée avec succès." });
+      res.status(200).json({ message: "Request updated successfully." });
     } catch (err) {
       await connection.rollback();
-      console.error("Erreur serveur:", err);
-      sendError(res, 500, "Erreur serveur");
+      sendError(res, 500, "Server error");
     } finally {
       connection.release();
     }
@@ -195,19 +192,18 @@ router.delete(
       );
       if (!demande) {
         await connection.rollback();
-        return sendError(res, 404, "Demande introuvable");
+        return sendError(res, 404, "Request not found");
       }
       if (demande.id_client !== req.client.id) {
         await connection.rollback();
-        return sendError(res, 403, "Accès non autorisé");
+        return sendError(res, 403, "Unauthorized access");
       }
       await connection.query("DELETE FROM demande_collecte WHERE id = ?", [id]);
       await connection.commit();
-      res.status(200).json({ message: "Demande supprimée avec succès." });
+      res.status(200).json({ message: "Request deleted successfully." });
     } catch (err) {
       await connection.rollback();
-      console.error("Erreur serveur:", err);
-      sendError(res, 500, "Erreur serveur");
+      sendError(res, 500, "Server error");
     } finally {
       connection.release();
     }
@@ -223,12 +219,10 @@ router.get("/users/:type", verifyClient, fetchClient, async (req, res) => {
     );
     res.json(users);
   } catch (err) {
-    console.error("Erreur lors de la récupération des utilisateurs:", err);
-    res.status(500).json({ message: "Erreur serveur" });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-// Add message routes
-createMessageRoutes(router, 'client', verifyClient, fetchClient);
+createMessageRoutes(router, "client", verifyClient, fetchClient);
 
 export default router;

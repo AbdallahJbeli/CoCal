@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/SideBar";
 import CollectesList from "../components/CollectesList";
-import ClientsList from "../components/ClientsList";
-import CommercialDashboard from "../components/CommercialDashboard";
+import ClientsList from "../components/Commercial/ClientsList";
+import CommercialDashboard from "../components/Commercial/CommercialDashboard";
 import ChauffeursList from "../components/ChauffeursList";
-import CommercialMessages from "../components/CommercialMessages";
+import CommercialMessages from "../components/Commercial/CommercialMessages";
 
 const commercialTabs = [
   "Vue d'ensemble",
@@ -214,15 +214,17 @@ const CommercialPage = () => {
           {activeTab === "Historique" && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              Historique Content
+                Historique Content
               </h2>
-              <p className="text-gray-600">Your Historique content goes here.</p>
+              <p className="text-gray-600">
+                Your Historique content goes here.
+              </p>
             </div>
           )}
           {activeTab === "Message" && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Problèmes signalés
+                messages
               </h2>
               <CommercialMessages />
             </div>

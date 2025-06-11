@@ -1,24 +1,28 @@
 import React, { useState, useEffect } from "react";
 import {
+  Users,
+  Briefcase,
   User,
+  Truck,
   Package,
   Clock,
   CheckCircle,
   XCircle,
   Loader2,
   Eye,
-  Truck,
 } from "lucide-react";
 
-const CommercialDashboard = () => {
+const AdminDashboard = () => {
   const [stats, setStats] = useState({
+    totalUsers: 0,
+    commercials: 0,
     clients: 0,
+    chauffeurs: 0,
     totalCollections: 0,
     pendingCollections: 0,
     activeCollections: 0,
     completedCollections: 0,
     cancelledCollections: 0,
-    chauffeurs: 0,
     loading: true,
     error: null,
   });
@@ -31,46 +35,38 @@ const CommercialDashboard = () => {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem("token");
-        // Fetch clients for this commercial
-        const clientsResponse = await fetch(
-          "http://localhost:5000/commercial/clients",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (!clientsResponse.ok) {
-          throw new Error("Failed to fetch clients");
-        }
-        const clientsData = await clientsResponse.json();
 
-        // Fetch chauffeurs for this commercial
-        const chauffeursResponse = await fetch(
-          "http://localhost:5000/commercial/chauffeurs",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (!chauffeursResponse.ok) {
-          throw new Error("Failed to fetch chauffeurs");
-        }
-        const chauffeursData = await chauffeursResponse.json();
+        const usersResponse = await fetch("http://localhost:5000/admin/users", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-        // Fetch demandes (collections) for this commercial
+        if (!usersResponse.ok) {
+          throw new Error("Failed to fetch user statistics");
+        }
+
+        const usersData = await usersResponse.json();
+
+        const userCounts = usersData.reduce((acc, user) => {
+          const type = user.typeUtilisateur.toLowerCase();
+          acc[type] = (acc[type] || 0) + 1;
+          return acc;
+        }, {});
+
         const collectionsResponse = await fetch(
-          "http://localhost:5000/commercial/demandes",
+          "http://localhost:5000/admin/collectes",
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
         );
+
         if (!collectionsResponse.ok) {
-          throw new Error("Failed to fetch demandes");
+          throw new Error("Failed to fetch collection statistics");
         }
+
         const collectionsData = await collectionsResponse.json();
         setCollections(collectionsData);
 
@@ -81,17 +77,20 @@ const CommercialDashboard = () => {
         }, {});
 
         setStats({
-          clients: clientsData.length,
+          totalUsers: usersData.length,
+          commercials: userCounts.commercial || 0,
+          clients: userCounts.client || 0,
+          chauffeurs: userCounts.chauffeur || 0,
           totalCollections: collectionsData.length,
           pendingCollections: collectionCounts["en_attente"] || 0,
           activeCollections: collectionCounts["en_cours"] || 0,
           completedCollections: collectionCounts["terminee"] || 0,
           cancelledCollections: collectionCounts["annulee"] || 0,
-          chauffeurs: chauffeursData.length,
           loading: false,
           error: null,
         });
       } catch (error) {
+        console.error("Error fetching statistics:", error);
         setStats((prev) => ({
           ...prev,
           loading: false,
@@ -99,6 +98,7 @@ const CommercialDashboard = () => {
         }));
       }
     };
+
     fetchStats();
   }, []);
 
@@ -145,21 +145,32 @@ const CommercialDashboard = () => {
 
   const userStatCards = [
     {
+      title: "Total Utilisateurs",
+      value: stats.totalUsers,
+      icon: <Users className="h-6 w-6 text-blue-600" />,
+      bgColor: "bg-blue-50",
+      textColor: "text-blue-600",
+    },
+    {
+      title: "Commerciaux",
+      value: stats.commercials,
+      icon: <Briefcase className="h-6 w-6 text-purple-600" />,
+      bgColor: "bg-purple-50",
+      textColor: "text-purple-600",
+    },
+    {
       title: "Clients",
       value: stats.clients,
       icon: <User className="h-6 w-6 text-green-600" />,
       bgColor: "bg-green-50",
       textColor: "text-green-600",
     },
-  ];
-
-  const chauffeurStatCards = [
     {
-      title: "Total Chauffeurs",
+      title: "Chauffeurs",
       value: stats.chauffeurs,
-      icon: <Truck className="h-6 w-6 text-purple-600" />,
-      bgColor: "bg-purple-50",
-      textColor: "text-purple-600",
+      icon: <Truck className="h-6 w-6 text-orange-600" />,
+      bgColor: "bg-orange-50",
+      textColor: "text-orange-600",
     },
   ];
 
@@ -215,38 +226,10 @@ const CommercialDashboard = () => {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Statistiques Clients
+          Statistiques Utilisateurs
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {userStatCards.map((card, index) => (
-            <div
-              key={index}
-              className="bg-white p-6 rounded-xl shadow-sm border border-gray-100"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    {card.title}
-                  </p>
-                  <p className="text-2xl font-semibold text-gray-900 mt-1">
-                    {card.value}
-                  </p>
-                </div>
-                <div className={`p-3 ${card.bgColor} rounded-lg`}>
-                  {card.icon}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Statistiques Chauffeurs
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {chauffeurStatCards.map((card, index) => (
             <div
               key={index}
               className="bg-white p-6 rounded-xl shadow-sm border border-gray-100"
@@ -343,11 +326,9 @@ const CommercialDashboard = () => {
                           Date souhaitée
                         </p>
                         <p className="text-base text-gray-900">
-                          {collection.date_souhaitee
-                            ? new Date(
-                                collection.date_souhaitee
-                              ).toLocaleDateString()
-                            : "-"}
+                          {new Date(
+                            collection.date_souhaitee
+                          ).toLocaleDateString()}
                         </p>
                       </div>
                       <div>
@@ -397,6 +378,16 @@ const CommercialDashboard = () => {
                         </p>
                       </div>
                     )}
+                    {collection.latitude && collection.longitude && (
+                      <a
+                        href={`https://www.openstreetmap.org/?mlat=${collection.latitude}&mlon=${collection.longitude}#map=18/${collection.latitude}/${collection.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center text-sm text-green-700 hover:underline mt-1"
+                      >
+                        Voir la localisation
+                      </a>
+                    )}
                   </div>
                 ))}
               </div>
@@ -408,4 +399,4 @@ const CommercialDashboard = () => {
   );
 };
 
-export default CommercialDashboard;
+export default AdminDashboard;

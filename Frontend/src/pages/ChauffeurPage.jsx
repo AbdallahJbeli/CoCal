@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import Sidebar from "../components/SideBar";
-import ChauffeurCollectesList from "../components/ChauffeurCollectesList";
-import ChauffeurDashboard from "../components/ChauffeurDashboard";
-import ChauffeurMessages from "../components/ChauffeurMessages";
+import ChauffeurCollectesList from "../components/Chauffeur/ChauffeurCollectesList";
+import ChauffeurDashboard from "../components/Chauffeur/ChauffeurDashboard";
+import ChauffeurMessages from "../components/Chauffeur/ChauffeurMessages";
 
 const chauffeurTabs = [
   "Vue d'ensemble",

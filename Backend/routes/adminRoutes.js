@@ -8,19 +8,19 @@ import { createMessageRoutes } from "./messageRoutes.js";
 const router = express.Router();
 
 const validateUserInput = [
-  body("nom").trim().notEmpty().withMessage("Le nom est requis"),
-  body("email").isEmail().withMessage("Email invalide"),
+  body("nom").trim().notEmpty().withMessage("Name is required"),
+  body("email").isEmail().withMessage("Invalid email"),
   body("motDePasse")
     .optional()
     .isLength({ min: 6 })
-    .withMessage("Le mot de passe doit contenir au moins 6 caractères"),
+    .withMessage("Password must be at least 6 characters long"),
   body("typeUtilisateur")
     .isIn(["Admin", "Commercial", "Client", "Chauffeur"])
-    .withMessage("Type d'utilisateur invalide"),
+    .withMessage("Invalid user type"),
   body("num_telephone")
     .optional()
     .matches(/^[0-9+\s-]+$/)
-    .withMessage("Numéro de téléphone invalide"),
+    .withMessage("Invalid phone number"),
   body("disponible").optional().isBoolean(),
 ];
 
@@ -100,11 +100,11 @@ router.post(
       await connection.beginTransaction();
 
       if (await checkUserExists(email)) {
-        return sendError(res, 400, "Cet email est déjà utilisé.");
+        return sendError(res, 400, "This email is already in use.");
       }
 
       if (typeUtilisateur === "Admin" && (await adminExists())) {
-        return sendError(res, 400, "Un administrateur existe déjà.");
+        return sendError(res, 400, "An administrator already exists.");
       }
 
       const hashPassword = await bcrypt.hash(motDePasse, 10);
@@ -121,11 +121,11 @@ router.post(
       );
       await connection.commit();
 
-      res.status(201).json({ message: "Utilisateur créé avec succès." });
+      res.status(201).json({ message: "User created successfully." });
     } catch (err) {
       await connection.rollback();
-      // console.error("Erreur création utilisateur:", err);
-      sendError(res, 500, "Erreur lors de la création de l'utilisateur.");
+      // console.error("Error creating user:", err);
+      sendError(res, 500, "Error creating user.");
     } finally {
       connection.release();
     }
@@ -152,8 +152,7 @@ router.get("/users", verifyAdmin, async (req, res) => {
     `);
     res.status(200).json(users);
   } catch (err) {
-    // console.error("Erreur récupération utilisateurs:", err);
-    sendError(res, 500, "Erreur lors de la récupération des utilisateurs.");
+    sendError(res, 500, "Error retrieving users.");
   }
 });
 
@@ -165,12 +164,11 @@ router.get("/users/:type", verifyAdmin, async (req, res) => {
       [type]
     );
     if (users.length === 0) {
-      return res.status(404).json({ message: `Aucun utilisateur de type ${type} trouvé` });
+      return res.status(404).json({ message: `No user of type ${type} found` });
     }
     res.json(users);
   } catch (err) {
-    console.error("Erreur lors de la récupération des utilisateurs:", err);
-    res.status(500).json({ message: "Erreur serveur" });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -205,12 +203,12 @@ router.get(
       );
 
       if (rows.length === 0) {
-        return sendError(res, 404, "Utilisateur non trouvé.");
+        return sendError(res, 404, "User not found.");
       }
 
       res.status(200).json(rows[0]);
     } catch (err) {
-      sendError(res, 500, "Erreur lors de la récupération de l'utilisateur.");
+      sendError(res, 500, "Error retrieving user.");
     }
   }
 );
@@ -239,7 +237,7 @@ router.get("/collectes", verifyAdmin, async (req, res) => {
     `);
     res.status(200).json(collections);
   } catch (err) {
-    sendError(res, 500, "Erreur lors de la récupération des collectes.");
+    sendError(res, 500, "Error retrieving collections.");
   }
 });
 
@@ -248,7 +246,7 @@ router.put("/collectes/:id", verifyAdmin, async (req, res) => {
   const { statut } = req.body;
 
   if (!statut) {
-    return sendError(res, 400, "Le statut est requis");
+    return sendError(res, 400, "Status is required");
   }
 
   try {
@@ -258,13 +256,13 @@ router.put("/collectes/:id", verifyAdmin, async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      return sendError(res, 404, "Collecte non trouvée");
+      return sendError(res, 404, "Collection not found");
     }
 
-    res.status(200).json({ message: "Statut mis à jour avec succès" });
+    res.status(200).json({ message: "Status updated successfully" });
   } catch (err) {
     console.error("Erreur lors de la mise à jour du statut:", err);
-    sendError(res, 500, "Erreur lors de la mise à jour du statut");
+    sendError(res, 500, "Error updating status");
   }
 });
 
@@ -273,7 +271,6 @@ router.put("/collectes/:id/affectation", verifyAdmin, async (req, res) => {
   const { id_chauffeur, id_vehicule } = req.body;
 
   try {
-    // Update the demande with the chauffeur
     const [result] = await pool.query(
       `UPDATE demande_collecte
        SET id_chauffeur = ?
@@ -282,25 +279,22 @@ router.put("/collectes/:id/affectation", verifyAdmin, async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Demande non trouvée" });
+      return res.status(404).json({ message: "Request not found" });
     }
 
-    // Update the chauffeur's vehicle
-    await pool.query(
-      `UPDATE chauffeur SET id_vehicule = ? WHERE id = ?`,
-      [id_vehicule, id_chauffeur]
-    );
+    await pool.query(`UPDATE chauffeur SET id_vehicule = ? WHERE id = ?`, [
+      id_vehicule,
+      id_chauffeur,
+    ]);
 
-    // Update the vehicle status
-    await pool.query(
-      `UPDATE vehicule SET etat = 'en_mission' WHERE id = ?`,
-      [id_vehicule]
-    );
+    await pool.query(`UPDATE vehicule SET etat = 'en_mission' WHERE id = ?`, [
+      id_vehicule,
+    ]);
 
-    res.json({ message: "Affectation réussie" });
+    res.json({ message: "Assignment successful" });
   } catch (err) {
     console.error("Erreur lors de l'affectation:", err);
-    res.status(500).json({ message: "Erreur serveur", error: err.message });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 
@@ -325,14 +319,14 @@ router.put(
         [id]
       );
       if (!existingUser.length) {
-        return sendError(res, 404, "Utilisateur non trouvé.");
+        return sendError(res, 404, "User not found.");
       }
 
       if (email && (await checkUserExists(email, id))) {
         return sendError(
           res,
           400,
-          "Cet email est déjà utilisé par un autre utilisateur."
+          "This email is already used by another user."
         );
       }
 
@@ -341,15 +335,11 @@ router.put(
         req.body.typeUtilisateur &&
         req.body.typeUtilisateur.toLowerCase() !== "admin"
       ) {
-        return sendError(
-          res,
-          400,
-          "Impossible de modifier le type d'utilisateur administrateur"
-        );
+        return sendError(res, 400, "Cannot change the administrator user type");
       }
 
       if (typeUtilisateur === "Admin" && (await adminExists(id))) {
-        return sendError(res, 400, "Un autre administrateur existe déjà.");
+        return sendError(res, 400, "Another administrator already exists.");
       }
 
       if (
@@ -371,7 +361,7 @@ router.put(
           return sendError(
             res,
             400,
-            `Impossible de changer le rôle : ce commercial est encore assigné aux clients suivants : ${clientList}. Veuillez réaffecter les clients avant de changer le rôle.`
+            `Cannot change role: this commercial is still assigned to the following clients: ${clientList}. Please reassign the clients before changing the role.`
           );
         }
       }
@@ -409,11 +399,10 @@ router.put(
       }
 
       await connection.commit();
-      res.status(200).json({ message: "Utilisateur modifié avec succès." });
+      res.status(200).json({ message: "User updated successfully." });
     } catch (err) {
       await connection.rollback();
-      // console.error("Erreur modification utilisateur:", err);
-      sendError(res, 500, "Erreur lors de la modification de l'utilisateur.");
+      sendError(res, 500, "Error updating user.");
     } finally {
       connection.release();
     }
@@ -441,7 +430,7 @@ router.delete(
       );
 
       if (!user.length) {
-        return sendError(res, 404, "Utilisateur non trouvé.");
+        return sendError(res, 404, "User not found.");
       }
 
       if (user[0].typeUtilisateur.toLowerCase() === "commercial") {
@@ -459,7 +448,7 @@ router.delete(
           return sendError(
             res,
             400,
-            `Impossible de supprimer ce commercial : il est encore assigné aux clients suivants : ${clientList}. Veuillez réaffecter les clients avant suppression.`
+            `Cannot delete this commercial: they are still assigned to the following clients: ${clientList}. Please reassign the clients before deletion.`
           );
         }
       }
@@ -470,71 +459,25 @@ router.delete(
       );
 
       if (result.affectedRows === 0) {
-        return sendError(res, 404, "Utilisateur non trouvé.");
+        return sendError(res, 404, "User not found.");
       }
 
       await connection.commit();
-      res.status(200).json({ message: "Utilisateur supprimé avec succès." });
+      res.status(200).json({ message: "User deleted successfully." });
     } catch (err) {
       await connection.rollback();
 
-      sendError(res, 500, "Erreur lors de la suppression de l'utilisateur.");
+      sendError(res, 500, "Error deleting user.");
     } finally {
       connection.release();
     }
   }
 );
 
-// Get all problems
-router.get("/problemes", verifyAdmin, async (req, res) => {
-  try {
-    const [problems] = await pool.query(
-      `SELECT pc.*, dc.id as id_demande, 
-              u_ch.nom as chauffeur_nom,
-              u_cl.nom as client_nom
-       FROM problemes_collecte pc
-       JOIN demande_collecte dc ON pc.id_demande = dc.id
-       JOIN client cl ON dc.id_client = cl.id
-       JOIN chauffeur ch ON pc.id_chauffeur = ch.id
-       JOIN utilisateur u_ch ON ch.id_utilisateur = u_ch.id
-       JOIN utilisateur u_cl ON cl.id_utilisateur = u_cl.id
-       ORDER BY pc.date_signalement DESC`
-    );
-    res.json(problems);
-  } catch (err) {
-    console.error("Erreur lors de la récupération des problèmes:", err);
-    res.status(500).json({ message: "Erreur serveur" });
-  }
-});
 
-// Update problem status
-router.put("/problemes/:id/status", verifyAdmin, async (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
-
-  try {
-    const [result] = await pool.query(
-      `UPDATE problemes_collecte 
-       SET statut = ?, 
-           date_resolution = ${status === 'resolu' ? 'NOW()' : 'NULL'}
-       WHERE id = ?`,
-      [status, id]
-    );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Problème non trouvé" });
-    }
-
-    res.json({ message: "Statut mis à jour avec succès" });
-  } catch (err) {
-    console.error("Erreur lors de la mise à jour du statut:", err);
-    res.status(500).json({ message: "Erreur serveur" });
-  }
-});
 
 router.get("/chauffeurs", verifyAdmin, async (req, res) => {
   try {
-    // Get all chauffeurs with their details
     const [chauffeurs] = await pool.query(
       `SELECT ch.id, u.nom, ch.disponible, v.id AS vehicule_id, v.marque, v.modele, v.matricule
        FROM chauffeur ch
@@ -542,7 +485,6 @@ router.get("/chauffeurs", verifyAdmin, async (req, res) => {
        LEFT JOIN vehicule v ON ch.id_vehicule = v.id`
     );
 
-    // For each chauffeur, get their assigned collectes
     for (const chauffeur of chauffeurs) {
       const [collectes] = await pool.query(
         `SELECT id, type_dechet, date_souhaitee, heure_preferee, statut
@@ -555,11 +497,11 @@ router.get("/chauffeurs", verifyAdmin, async (req, res) => {
 
     res.json(chauffeurs);
   } catch (err) {
-    console.error("Erreur lors de la récupération des chauffeurs:", err);
-    res.status(500).json({ message: "Erreur serveur" });
+    console.error("Error retrieving chauffeurs:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-createMessageRoutes(router, 'admin', verifyAdmin, null);
+createMessageRoutes(router, "admin", verifyAdmin, null);
 
 export default router;

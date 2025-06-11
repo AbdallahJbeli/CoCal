@@ -26,12 +26,12 @@ const initializeAdmin = async () => {
         "INSERT INTO utilisateur (nom, email, motDePasse, typeUtilisateur) VALUES (?, ?, ?, ?)",
         ["Admin", "admin@cocal.com", hashedPassword, "admin"]
       );
-      console.log("Admin par défaut ajouté.");
+      console.log("Default admin added.");
     } else {
-      console.log("Admin déjà présent.");
+      console.log("Admin already present.");
     }
   } catch (err) {
-    console.error("Erreur lors de l'initialisation de l'admin:", err);
+    console.error("Error initializing admin:", err);
   }
 };
 
@@ -42,11 +42,11 @@ const initializeDatabase = async () => {
 const testDatabaseConnection = async () => {
   try {
     const connection = await pool.getConnection();
-    console.log("Connecté à la base de données");
+    console.log("Connected to the database");
     connection.release();
     await initializeDatabase();
   } catch (err) {
-    console.error("Erreur de connexion à la base de données:", err);
+    console.error("Database connection error:", err);
     throw err;
   }
 };

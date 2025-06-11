@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { MessageSquare, Send, CheckCircle } from "lucide-react";
+import { MessageSquare, Send, CheckCircle, Trash2 } from "lucide-react";
 
 const AdminMessages = () => {
   const [messages, setMessages] = useState([]);
@@ -46,11 +46,11 @@ const AdminMessages = () => {
 
       const data = await response.json();
       setRecipients(data);
-      setError(null); // Clear any previous errors
+      setError(null);
     } catch (err) {
       console.error("Error fetching recipients:", err);
       setError(err.message);
-      setRecipients([]); // Clear recipients on error
+      setRecipients([]);
     }
   };
 
@@ -137,6 +137,32 @@ const AdminMessages = () => {
       );
     } catch (err) {
       console.error("Error marking message as read:", err);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm("Are you sure you want to delete this message?"))
+      return;
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:5000/admin/messages/${messageId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to delete message");
+      }
+      setMessages((prevMessages) =>
+        prevMessages.filter((msg) => msg.id !== messageId)
+      );
+    } catch (err) {
+      console.error("Error deleting message:", err);
+      setError("Failed to delete message");
     }
   };
 
@@ -288,17 +314,26 @@ const AdminMessages = () => {
                     {new Date(message.date_envoi).toLocaleString()}
                   </p>
                 </div>
-                {!message.is_read &&
-                  message.receiver_id ===
-                    parseInt(localStorage.getItem("userId")) && (
-                    <button
-                      onClick={() => handleMarkAsRead(message.id)}
-                      className="ml-4 p-2 text-blue-600 hover:text-blue-700"
-                      title="Marquer comme lu"
-                    >
-                      <CheckCircle className="h-5 w-5" />
-                    </button>
-                  )}
+                <div className="flex flex-col items-end gap-2 ml-4">
+                  {!message.is_read &&
+                    message.receiver_id ===
+                      parseInt(localStorage.getItem("userId")) && (
+                      <button
+                        onClick={() => handleMarkAsRead(message.id)}
+                        className="inline-flex items-center px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-1" />
+                        Marquer comme lu
+                      </button>
+                    )}
+                  <button
+                    onClick={() => handleDeleteMessage(message.id)}
+                    className="inline-flex items-center px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors mt-2"
+                    title="Supprimer le message"
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}

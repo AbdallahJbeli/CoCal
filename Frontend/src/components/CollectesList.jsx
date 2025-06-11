@@ -40,7 +40,6 @@ const CollectesList = ({ demandes, loading, onStatusChange }) => {
         const chauffeurData = await chauffeurRes.json();
         const vehiculeData = await vehiculeRes.json();
 
-        // Ensure data is an array
         setChauffeurs(Array.isArray(chauffeurData) ? chauffeurData : []);
         setVehicules(Array.isArray(vehiculeData) ? vehiculeData : []);
         setFetchError(null);
@@ -55,7 +54,6 @@ const CollectesList = ({ demandes, loading, onStatusChange }) => {
     fetchData();
   }, [token]);
 
-  // Initialize assignedResources when demandes change
   useEffect(() => {
     const initialAssignments = {};
     demandes.forEach((demande) => {

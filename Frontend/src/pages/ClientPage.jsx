@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import Sidebar from "../components/SideBar";
-import DemandeList from "../components/DemandeList";
-import DemandeCollecteForm from "../components/DemandeCollecteTab";
-import ClientMessages from "../components/ClientMessages";
-import ClientDashboard from "../components/ClientDashboard";
+import DemandeList from "../components/Client/DemandeList";
+import DemandeCollecteForm from "../components/Client/DemandeCollecteTab";
+import ClientMessages from "../components/Client/ClientMessages";
+import ClientDashboard from "../components/Client/ClientDashboard";
 
 const clientTabs = [
   "Vue d'ensemble",

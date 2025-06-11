@@ -32,16 +32,16 @@ app.use("/chauffeur", chauffeurRoutes);
 app.use("/vehicules", vehiculeRoutes);
 
 app.get("/", (req, res) => {
-  res.send("Serveur fonctionne !");
+  res.send("Server is running!");
 });
 
 pool
   .getConnection()
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`Serveur en ligne sur le port ${PORT}`);
+      console.log(`Server online on port ${PORT}`);
     });
   })
   .catch((err) => {
-    console.error("Impossible de démarrer le serveur:", err);
+    console.error("Unable to start the server:", err);
   });

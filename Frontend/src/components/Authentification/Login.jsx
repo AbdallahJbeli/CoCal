@@ -133,6 +133,9 @@ const Login = () => {
       localStorage.setItem("token", token);
 
       const decoded = JSON.parse(atob(token.split(".")[1]));
+      if (decoded && decoded.id) {
+        localStorage.setItem("userId", decoded.id);
+      }
       redirectBasedOnRole(decoded.typeUtilisateur);
     } catch (err) {
       let errorMessage = "Erreur lors de la connexion";

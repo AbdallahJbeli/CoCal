@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/SideBar";
-import UsersTab from "../components/UsersTab";
+import UsersTab from "../components/Users/UsersTab";
 import CollectesList from "../components/CollectesList";
-import VehiculesTab from "../components/VehiculesTab";
+import VehiculesTab from "../components/Vehicules/VehiculesTab";
 import AnalyticsTab from "../components/AnalyticsTab";
 import ChauffeursList from "../components/ChauffeursList";
 import { useNavigate } from "react-router-dom";
-import AdminDashboard from "../components/AdminDashboard";
-import AdminMessages from "../components/AdminMessages";
+import AdminDashboard from "../components/Admin/AdminDashboard";
+import AdminMessages from "../components/Admin/AdminMessages";
 
 const adminTabs = [
   "Vue d'ensemble",
@@ -175,6 +175,8 @@ const AdminPage = () => {
         return "Gestion des chauffeurs";
       case "Analytics":
         return "Analytics";
+      case "Message":
+        return "Message";
       default:
         return "Admin Dashboard";
     }
@@ -220,7 +222,7 @@ const AdminPage = () => {
           {activeTab === "Message" && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Problèmes signalés
+                Messages
               </h2>
               <AdminMessages />
             </div>

@@ -29,7 +29,9 @@ router.post("/login", async (req, res) => {
 
   try {
     if (!email || !motDePasse) {
-      return res.status(400).json({ message: "Email et mot de passe requis." });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required." });
     }
 
     const [rows] = await pool.query(
@@ -38,22 +40,21 @@ router.post("/login", async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ message: "Utilisateur non trouvé." });
+      return res.status(404).json({ message: "User not found." });
     }
 
     const user = rows[0];
 
     const isMatch = await bcrypt.compare(motDePasse, user.motDePasse);
     if (!isMatch) {
-      return res.status(401).json({ message: "Mot de passe incorrect." });
+      return res.status(401).json({ message: "Incorrect password." });
     }
 
     const token = generateJWT(user.id, user.typeUtilisateur);
 
-    return res.status(200).json({ message: "Connexion réussie", token });
+    return res.status(200).json({ message: "Login successful", token });
   } catch (err) {
-    console.error("Erreur de connexion:", err);
-    res.status(500).json({ message: "Erreur serveur", error: err.message });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 
@@ -67,7 +68,7 @@ router.post("/forgot-password", async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ message: "Utilisateur non trouvé." });
+      return res.status(404).json({ message: "User not found." });
     }
 
     const resetToken = crypto.randomBytes(32).toString("hex");
@@ -82,22 +83,21 @@ router.post("/forgot-password", async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: "Réinitialisation de mot de passe",
+      subject: "Password Reset",
       html: `
-        <p>Vous avez demandé la réinitialisation de votre mot de passe.</p>
-        <p>Cliquez sur le lien suivant pour réinitialiser votre mot de passe :</p>
+        <p>You have requested a password reset.</p>
+        <p>Click the following link to reset your password:</p>
         <a href="${resetUrl}">${resetUrl}</a>
-        <p>Ce lien est valable pendant 1 heure.</p>
-        <p>Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email.</p>
+        <p>This link is valid for 1 hour.</p>
+        <p>If you did not request this reset, please ignore this email.</p>
       `,
     };
 
     await transporter.sendMail(mailOptions);
 
-    res.status(200).json({ message: "Email de réinitialisation envoyé." });
+    res.status(200).json({ message: "Reset email sent." });
   } catch (err) {
-    console.error("Erreur lors de la demande de réinitialisation:", err);
-    res.status(500).json({ message: "Erreur serveur", error: err.message });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 
@@ -112,7 +112,7 @@ router.post("/reset-password", async (req, res) => {
 
     if (rows.length === 0) {
       return res.status(400).json({
-        message: "Token de réinitialisation invalide ou expiré.",
+        message: "Invalid or expired reset token.",
       });
     }
 
@@ -123,10 +123,9 @@ router.post("/reset-password", async (req, res) => {
       [hashedPassword, token]
     );
 
-    res.status(200).json({ message: "Mot de passe réinitialisé avec succès." });
+    res.status(200).json({ message: "Password reset successfully." });
   } catch (err) {
-    console.error("Erreur lors de la réinitialisation du mot de passe:", err);
-    res.status(500).json({ message: "Erreur serveur", error: err.message });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 

@@ -6,27 +6,21 @@ import { body, param, validationResult } from "express-validator";
 const router = express.Router();
 
 const validateVehiculeInput = [
-  body("matricule").trim().notEmpty().withMessage("Le matricule est requis"),
-  body("marque")
-    .optional()
-    .isString()
-    .withMessage("La marque doit être une chaîne de caractères"),
-  body("modele")
-    .optional()
-    .isString()
-    .withMessage("Le modèle doit être une chaîne de caractères"),
+  body("matricule").trim().notEmpty().withMessage("Matricule is required"),
+  body("marque").optional().isString().withMessage("Brand must be a string"),
+  body("modele").optional().isString().withMessage("Model must be a string"),
   body("capacite_kg")
     .optional()
     .isFloat({ min: 0 })
-    .withMessage("La capacité doit être un nombre positif"),
+    .withMessage("Capacity must be a positive number"),
   body("etat")
     .optional()
     .isIn(["disponible", "en_maintenance", "en_mission"])
-    .withMessage("État invalide"),
+    .withMessage("Invalid status"),
   body("type_vehicule")
     .optional()
     .isIn(["camionette", "triporteur", "camion"])
-    .withMessage("Type de véhicule invalide"),
+    .withMessage("Invalid vehicle type"),
 ];
 
 const checkVehiculeExists = async (matricule, vehiculeId = null) => {
@@ -61,7 +55,7 @@ router.post(
         return sendError(
           res,
           400,
-          "Un véhicule avec ce matricule existe déjà."
+          "A vehicle with this matricule already exists."
         );
       }
 
@@ -72,10 +66,10 @@ router.post(
 
       await connection.commit();
 
-      res.status(201).json({ message: "Véhicule créé avec succès." });
+      res.status(201).json({ message: "Vehicle created successfully." });
     } catch (err) {
       await connection.rollback();
-      sendError(res, 500, "Erreur lors de l'ajout de la véhicule.");
+      sendError(res, 500, "Error adding vehicle.");
     } finally {
       connection.release();
     }
@@ -90,7 +84,7 @@ router.get("/vehicules", verifyAdmin, async (req, res) => {
     `);
     res.status(200).json(vehicules);
   } catch (err) {
-    sendError(res, 500, "Erreur lors de la récupération des véhicules.");
+    sendError(res, 500, "Error retrieving vehicles.");
   }
 });
 
@@ -113,13 +107,12 @@ router.get(
       );
 
       if (rows.length === 0) {
-        return sendError(res, 404, "véhicule non touvé.");
+        return sendError(res, 404, "Vehicle not found.");
       }
 
       res.status(200).json(rows[0]);
     } catch (err) {
-      // console.error("Erreur récupération utilisateur:", err);
-      sendError(res, 500, "Erreur lors de la récupération de la véhicule.");
+      sendError(res, 500, "Error retrieving vehicle.");
     }
   }
 );
@@ -146,14 +139,14 @@ router.put(
         [id]
       );
       if (!existingVehicules.length) {
-        return sendError(res, 404, "Véhicule non trouvé.");
+        return sendError(res, 404, "Vehicle not found.");
       }
 
       if (matricule && (await checkVehiculeExists(matricule, id))) {
         return sendError(
           res,
           400,
-          "Cet matricule est déjà utilisé par une autre véhicule."
+          "This matricule is already used by another vehicle."
         );
       }
 
@@ -194,11 +187,11 @@ router.put(
       }
 
       await connection.commit();
-      res.status(200).json({ message: "Véhicule modifié avec succès." });
+      res.status(200).json({ message: "Vehicle updated successfully." });
     } catch (err) {
       await connection.rollback();
-      console.error("Erreur modification véhicule:", err);
-      sendError(res, 500, "Erreur lors de la modification de la véhicule.");
+      console.error("Error updating vehicle:", err);
+      sendError(res, 500, "Error updating vehicle.");
     } finally {
       connection.release();
     }
@@ -225,16 +218,16 @@ router.delete(
         [id]
       );
       if (!existingVehicules.length) {
-        return sendError(res, 404, "Véhicule non trouvé.");
+        return sendError(res, 404, "Vehicle not found.");
       }
 
       await connection.query("DELETE FROM vehicule WHERE id = ?", [id]);
 
       await connection.commit();
-      res.status(200).json({ message: "Véhicule supprimé avec succès." });
+      res.status(200).json({ message: "Vehicle deleted successfully." });
     } catch (err) {
       await connection.rollback();
-      sendError(res, 500, "Erreur lors de la suppression du véhicule.");
+      sendError(res, 500, "Error deleting vehicle.");
     } finally {
       connection.release();
     }

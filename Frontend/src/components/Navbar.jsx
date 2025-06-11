@@ -2,7 +2,7 @@ import React from "react";
 import { Egg, Coffee, Menu } from "lucide-react";
 import "../assets/css/App.css";
 
-const Navabar = () => {
+const Navbar = () => {
   return (
     <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-sm">
       <header className="border-b border-green-600 px-4 shadow-sm">
@@ -86,4 +86,4 @@ const Navabar = () => {
   );
 };
 
-export default Navabar;
+export default Navbar;

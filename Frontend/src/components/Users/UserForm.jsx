@@ -15,7 +15,7 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
-import FormInput from "./FormInput";
+import FormInput from "../FormInput";
 
 const UserForm = ({
   formData,

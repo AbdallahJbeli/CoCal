@@ -27,7 +27,6 @@ router.get("/clients", verifyCommercial, fetchCommercial, async (req, res) => {
     );
     res.json(clients);
   } catch (err) {
-    console.error("Erreur lors de la récupération des clients:", err);
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
@@ -59,7 +58,6 @@ router.get(
       );
       res.json(rows);
     } catch (err) {
-      console.error("Erreur serveur:", err);
       res.status(500).json({ message: "Erreur serveur" });
     }
   }
@@ -82,10 +80,6 @@ router.get(
       );
       res.json(collectes);
     } catch (err) {
-      console.error(
-        "Erreur lors de la récupération des collectes du client:",
-        err
-      );
       res.status(500).json({ message: "Erreur serveur" });
     }
   }
@@ -124,7 +118,6 @@ router.get(
   fetchCommercial,
   async (req, res) => {
     try {
-      // Get all chauffeurs for this commercial
       const [chauffeurs] = await pool.query(
         `SELECT ch.id, u.nom, v.id AS vehicule_id, v.marque, v.modele, v.matricule
          FROM chauffeur ch
@@ -133,7 +126,6 @@ router.get(
          WHERE ch.disponible = 1`
       );
 
-      // For each chauffeur, get their assigned collectes
       for (const chauffeur of chauffeurs) {
         const [collectes] = await pool.query(
           `SELECT id, type_dechet, date_souhaitee, heure_preferee, statut
@@ -146,13 +138,11 @@ router.get(
 
       res.json(chauffeurs);
     } catch (err) {
-      console.error("Erreur lors de la récupération des chauffeurs:", err);
       res.status(500).json({ message: "Erreur serveur" });
     }
   }
 );
 
-// Route to get all available vehicles
 router.get(
   "/vehicules-disponibles",
   verifyAdminOrCommercial,
@@ -174,7 +164,7 @@ router.get(
 router.put(
   "/demandes/:id/affectation",
   verifyAdminOrCommercial,
-  fetchCommercial, // safe to keep this — just won't set `req.commercial` for admin
+  fetchCommercial,
   async (req, res) => {
     const { id } = req.params;
     const { id_chauffeur, id_vehicule } = req.body;
@@ -184,7 +174,6 @@ router.put(
     try {
       let result;
       if (isAdmin) {
-        // Admins can affect any demande
         [result] = await pool.query(
           `UPDATE demande_collecte
            SET id_chauffeur = ?
@@ -192,7 +181,6 @@ router.put(
           [id_chauffeur, id]
         );
       } else {
-        // Commercials can only affect their own demandes
         [result] = await pool.query(
           `UPDATE demande_collecte dc
            JOIN client c ON dc.id_client = c.id
@@ -224,66 +212,26 @@ router.put(
   }
 );
 
-// Get all problems for a commercial's clients
-router.get("/problemes", verifyCommercial, fetchCommercial, async (req, res) => {
-  try {
-    const [problems] = await pool.query(
-      `SELECT pc.*, dc.id as id_demande, u.nom as chauffeur_nom
-       FROM problemes_collecte pc
-       JOIN demande_collecte dc ON pc.id_demande = dc.id
-       JOIN client cl ON dc.id_client = cl.id
-       JOIN chauffeur ch ON pc.id_chauffeur = ch.id
-       JOIN utilisateur u ON ch.id_utilisateur = u.id
-       WHERE cl.id_commercial = ?
-       ORDER BY pc.date_signalement DESC`,
-      [req.commercial.id]
-    );
-    res.json(problems);
-  } catch (err) {
-    console.error("Erreur lors de la récupération des problèmes:", err);
-    res.status(500).json({ message: "Erreur serveur" });
-  }
-});
 
-// Update problem status
-router.put("/problemes/:id/status", verifyCommercial, fetchCommercial, async (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
 
-  try {
-    const [result] = await pool.query(
-      `UPDATE problemes_collecte 
-       SET statut = ?, 
-           date_resolution = ${status === 'resolu' ? 'NOW()' : 'NULL'}
-       WHERE id = ?`,
-      [status, id]
-    );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Problème non trouvé" });
+router.get(
+  "/users/:type",
+  verifyCommercial,
+  fetchCommercial,
+  async (req, res) => {
+    const { type } = req.params;
+    try {
+      const [users] = await pool.query(
+        "SELECT id, nom FROM utilisateur WHERE LOWER(typeUtilisateur) = LOWER(?)",
+        [type]
+      );
+      res.json(users);
+    } catch (err) {
+      res.status(500).json({ message: "Server error" });
     }
-
-    res.json({ message: "Statut mis à jour avec succès" });
-  } catch (err) {
-    console.error("Erreur lors de la mise à jour du statut:", err);
-    res.status(500).json({ message: "Erreur serveur" });
   }
-});
+);
 
-router.get("/users/:type", verifyCommercial, fetchCommercial, async (req, res) => {
-  const { type } = req.params;
-  try {
-    const [users] = await pool.query(
-      "SELECT id, nom FROM utilisateur WHERE LOWER(typeUtilisateur) = LOWER(?)",
-      [type]
-    );
-    res.json(users);
-  } catch (err) {
-    console.error("Erreur lors de la récupération des utilisateurs:", err);
-    res.status(500).json({ message: "Erreur serveur" });
-  }
-});
-
-createMessageRoutes(router, 'commercial', verifyCommercial, fetchCommercial);
+createMessageRoutes(router, "commercial", verifyCommercial, fetchCommercial);
 
 export default router;
